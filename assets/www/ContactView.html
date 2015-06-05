@@ -1,0 +1,490 @@
+<div id="ContactView" data-role="page" data-theme="a">
+	<script>
+		var CV = new Object();
+		CV.func = new Object();
+		
+		CV.contactSource = null;
+		CV.contactIndex = -1;
+		CV.selectedContact = null;
+		CV.groupDesc = "";
+		
+		CV.page = $("#ContactView");
+		CV.contentDiv = CV.page.find("#ContentDiv");
+		CV.contactPhoto = CV.contentDiv.find("#ContactPhoto");
+		//CV.contactName = CV.contentDiv.find("#ContactName");
+		//CV.contactRating = CV.contentDiv.find("#ContactRating");
+		//CV.contactNotes = CV.contentDiv.find("#ContactNotes");
+		//CV.contactPhysicalDesc = CV.contentDiv.find("#ContactPhysicalDesc");
+		//CV.contactMetPerson = CV.contentDiv.find("#ContactMetPerson");
+		//CV.contactBirthdayMonth = CV.contentDiv.find("#ContactBirthdayMonth");
+		//CV.contactBirthdayDay = CV.contentDiv.find("#ContactBirthdayDay");
+		//CV.contactGroup = CV.contentDiv.find("#ContactGroup");
+		//CV.contactSubGroup = CV.contentDiv.find("#ContactSubGroup");
+		//CV.phoneInnerDiv = CV.contentDiv.find("#PhoneInnerDiv");
+		//CV.emailInnerDiv = CV.contentDiv.find("#EmailInnerDiv");
+		//CV.addressInnerDiv = CV.contentDiv.find("#AddressInnerDiv");
+		//CV.personalityInnerDiv = CV.contentDiv.find("#PersonalityInnerDiv");
+		
+		CV.func.LoadContact = function()
+		{
+			CV.contactSource = GetSession(C.ContactSource);
+			CV.contactIndex = parseInt(GetSession(C.ContactIndex));
+			
+			if(isNaN(CV.contactIndex))
+			{
+				CV.contactIndex = null;
+			}
+			
+			if(!IsNull(CV.contactIndex) && !isNaN(CV.contactIndex))
+			{
+				if(CV.contactIndex >= 0 && CV.contactIndex < savedContacts.length)
+				{
+					CV.selectedContact = savedContacts[CV.contactIndex];
+				}
+				else
+				{
+					OnError("CV-101", true);
+					return;
+				}
+			}
+			else
+			{
+				OnError("CV-102", true);
+				return;
+			}
+			
+			if(IsNull(CV.contactSource) && IsNull(CV.contactMode))
+			{
+				OnError("CV-104", true);
+				return;
+			}
+			
+			GetContactImageSource(CV.selectedContact, CV.func.SetImage);
+			
+			GetGroupDesc(CV.func.GetGroupComplete, CV.selectedContact.groupID);
+			
+			CV.contentDiv.find("#ContactName").text(GetContactName(CV.selectedContact));
+			
+			if(CheckObjectProperty(CV.selectedContact, "note", false))
+			{
+				CV.contentDiv.find("#ContactNotes").text(CV.selectedContact.note);
+			}
+			else
+			{
+				CV.contentDiv.find("#NoteDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "physicalDesc", false))
+			{
+				CV.contentDiv.find("#ContactPhysicalDesc").text(CV.selectedContact.physicalDesc); 
+			}
+			else
+			{
+				CV.contentDiv.find("#PhysicalDescDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "metPerson", false))
+			{
+				CV.contentDiv.find("#ContactMetPerson").text(CV.selectedContact.metPerson);
+			}
+			else
+			{
+				CV.contentDiv.find("#MetPersonDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "rating", false))
+			{
+				CV.contentDiv.find("#ContactRating").raty({
+					score: CV.selectedContact.rating,
+					cancel: false,
+					readOnly: true
+				});
+			}
+			else
+			{
+				CV.contentDiv.find("#ContactRating").raty({
+					cancel: true,
+					readOnly: true
+				});
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "phoneNumbers", true))
+			{
+				var length = CV.selectedContact.phoneNumbers.length;
+				var phoneInnerHTML = '<ul data-role="listview" id="PhoneList">';
+				
+				for(var phoneIndex = 0; phoneIndex < length; phoneIndex++)
+				{
+					phoneInnerHTML += CV.func.GetHTML('phone', false, phoneIndex);
+				}
+				
+				phoneInnerHTML += '</ul>';
+				CV.contentDiv.find("#PhoneInnerDiv").html(phoneInnerHTML).trigger('create');
+			}
+			else
+			{
+				CV.contentDiv.find("#PhoneDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "emails", true))
+			{
+				var length = CV.selectedContact.emails.length;
+				var emailInnerHTML = '<ul data-role="listview" id="EmailList">';
+					
+				for(var emailIndex = 0; emailIndex < length; emailIndex++)
+				{
+					emailInnerHTML += CV.func.GetHTML('email', false, emailIndex);
+				}
+			
+				emailInnerHTML += '</ul>';
+				CV.contentDiv.find("#EmailInnerDiv").html(emailInnerHTML).trigger('create');
+			}
+			else
+			{
+				CV.contentDiv.find("#EmailDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "addresses", true))
+			{
+				var length = CV.selectedContact.addresses.length;
+				var addressInnerHTML = '<ul data-role="listview" id="EmailList">';
+				
+				for(var addressIndex = 0; addressIndex < length; addressIndex++)
+				{
+					addressInnerHTML += CV.func.GetHTML('address', false, addressIndex);
+				}
+				
+				addressInnerHTML += '</ul>';
+				CV.contentDiv.find("#AddressInnerDiv").html(addressInnerHTML).trigger('create');
+			}
+			else
+			{
+				CV.contentDiv.find("#AddressDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "personalities", true))
+			{
+				var length = CV.selectedContact.personalities.length;
+				var personalityInnerHTML = '<ul data-role="listview" id="EmailList">';
+				
+				for(var personalityIndex = 0; personalityIndex < length; personalityIndex++)
+				{
+					personalityInnerHTML += CV.func.GetHTML('personality', false, personalityIndex);
+				}
+				
+				personalityInnerHTML += '</ul>';
+				CV.contentDiv.find("#PersonalityInnerDiv").html(personalityInnerHTML).trigger('create');
+			}
+			else
+			{
+				CV.contentDiv.find("#PersonalityDiv").hide();
+			}
+			
+			if(CheckObjectProperty(CV.selectedContact, "birthday", false))
+			{
+				if(CheckObjectProperty(CV.selectedContact.birthday, "month", false) && CheckObjectProperty(CV.selectedContact.birthday, "day", false))
+				{
+					var birthday = "";
+					
+					switch(CV.selectedContact.birthday.month)
+					{
+						case 1:
+							birthday = "January";
+							break;
+							
+						case 2:
+							birthday = "February";
+							break;
+							
+						case 3:
+							birthday = "March";
+							break;
+							
+						case 4:
+							birthday = "April";
+							break;
+							
+						case 5:
+							birthday = "May";
+							break;
+							
+						case 6:
+							birthday = "June";
+							break;
+							
+						case 7:
+							birthday = "July";
+							break;
+							
+						case 8:
+							birthday = "August";
+							break;
+							
+						case 9:
+							birthday = "September";
+							break;
+							
+						case 10:
+							birthday = "October";
+							break;
+							
+						case 11:
+							birthday = "November";
+							break;
+							
+						case 12:
+							birthday = "December";
+							break;
+					}
+					
+					birthday += " " + CV.selectedContact.birthday.day;
+					CV.contentDiv.find("#ContactBirthday").text(birthday);
+				}
+				else
+				{
+					CV.contentDiv.find("#BirthdayDiv").hide();
+				}
+			}
+			else
+			{
+				CV.contentDiv.find("#BirthdayDiv").hide();
+			}
+		}
+		
+		CV.func.GetGroupComplete = function (groupDesc)
+		{
+			CV.groupDesc = groupDesc;
+			GetSubGroupDesc(CV.func.GetSubGroupComplete, CV.selectedContact.groupID, CV.selectedContact.subGroupID);
+		}
+		
+		CV.func.GetSubGroupComplete = function (subGroupDesc)
+		{
+			if(IsNullOrUndefinedOrEmpty(CV.groupDesc))
+			{
+				CV.contentDiv.find("#GroupDiv").hide();
+			}
+			else
+			{
+				if(IsNullOrUndefinedOrEmpty(subGroupDesc))
+				{
+					CV.contentDiv.find("#ContactGroup").text(CV.groupDesc);
+				}
+				else
+				{
+					CV.contentDiv.find("#ContactGroup").text(CV.groupDesc + " > " + subGroupDesc);
+				}
+			}
+		}
+		
+		CV.func.GetHTML = function (type, isNew, secondaryIndex)
+		{
+			var html = '';
+			
+			switch(type)
+			{ 
+				case 'phone':
+					var phoneType = "";
+					var phoneValue = "";
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CV.selectedContact, "phoneNumbers", true))
+						{
+							if(CheckObjectProperty(CV.selectedContact.phoneNumbers[secondaryIndex], "type", false))
+							{
+								phoneType = ToUpperCase(CV.selectedContact.phoneNumbers[secondaryIndex].type);
+							}
+							
+							if(CheckObjectProperty(CV.selectedContact.phoneNumbers[secondaryIndex], "value", false))
+							{
+								phoneValue = CV.selectedContact.phoneNumbers[secondaryIndex].value;
+							}
+						}
+					}
+					
+					html =
+						'<li>' +
+							'<a href="tel:' + phoneValue + '">' +
+								'<div class="ui-grid-a PhoneNumber">' +
+									'<div class="ui-block-a" style="width: 30%;">' +
+										phoneType +
+									'</div>' +
+									'<div class="ui-block-b" style="width: 70%;">' +
+										phoneValue +
+									'</div>' +
+								'</div>' +
+							'</a>' +
+						'</li>';
+					break;
+					
+				case 'email':
+					var emailType = "";
+					var emailValue = "";
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CV.selectedContact, "emails", true))
+						{
+							if(CheckObjectProperty(CV.selectedContact.emails[secondaryIndex], "type", false))
+							{
+								emailType = ToUpperCase(CV.selectedContact.emails[secondaryIndex].type);
+							}
+							
+							if(CheckObjectProperty(CV.selectedContact.emails[secondaryIndex], "value", false))
+							{
+								emailValue = CV.selectedContact.emails[secondaryIndex].value;
+							}
+						}
+					}
+					
+					html =
+						'<li>' +
+							'<a href="email:' + emailValue + '">' +
+								'<div class="ui-grid-a PhoneNumber">' +
+									'<div class="ui-block-a" style="width: 30%;">' +
+										emailType +
+									'</div>' +
+									'<div class="ui-block-b" style="width: 70%;">' +
+										emailValue +
+									'</div>' +
+								'</div>' +
+							'</a>' +
+						'</li>';
+
+					break;
+			
+				case 'address':
+					var addressType = "";
+					var addressValue = "";
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CV.selectedContact, "addresses", true))
+						{
+							if(CheckObjectProperty(CV.selectedContact.addresses[secondaryIndex], "type", false))
+							{
+								addressType = ToUpperCase(CV.selectedContact.addresses[secondaryIndex].type);
+							}
+							
+							if(CheckObjectProperty(CV.selectedContact.addresses[secondaryIndex], "streetAddress", false))
+							{
+								addressValue = CV.selectedContact.addresses[secondaryIndex].streetAddress;
+							}
+						}
+					}
+					
+					html =
+						'<li>' +
+							'<a href="address:' + addressValue + '">' +
+								'<div class="ui-grid-a PhoneNumber">' +
+									'<div class="ui-block-a" style="width: 30%;">' +
+										addressType +
+									'</div>' +
+									'<div class="ui-block-b" style="width: 70%;">' +
+										addressValue +
+									'</div>' +
+								'</div>' +
+							'</a>' +
+						'</li>';
+						
+					break;
+					
+				case 'personality':
+					var personalityValue = "";
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CV.selectedContact, "personalities", true))
+						{
+							if(CheckObjectProperty(CV.selectedContact.personalities[secondaryIndex], "value", false))
+							{
+								personalityValue = CV.selectedContact.personalities[secondaryIndex].value;
+							}
+						}
+					}
+					
+					html = 
+						'<li>' +
+							personalityValue +
+						'</li>';
+
+					break;
+			}
+			
+			return html;
+		}
+		
+		CV.func.SetImage = function(contact, src)
+		{
+			CV.contactPhoto.attr("src", src);
+		}
+		
+		function Delete()
+		{
+			//**** confirmation before delete
+			DeleteContact(CV.contactIndex);
+			Navigate(C.RelationshipHomeID);
+		}
+		
+		function Edit()
+		{
+			SetSession(C.ContactSource, C.ContactViewID);
+			SetSession(C.ContactMode, C.ContactEdit);
+			Navigate(C.ContactEditID);
+		}
+	</script>
+	
+	<div id="ContentDiv">
+	<div id="ImageDiv" style="text-align: center;">
+			<img id="ContactPhoto"  height="200px" width="200px" src="">
+		</div>
+		<div id="NameDiv">
+			<div style="background-color: black; color: #ffc72a;"><h3 style="padding: 6px;">Name</h3></div>
+			<label id="ContactName"></label>
+		</div>
+		<div id="RatingDiv">
+			<div style="background-color: #444444; color: #ffc72a;"><h3 style="padding: 6px;">Rating</h3></div>
+			<div id="ContactRating"></div>
+		</div>
+		<div id="NoteDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Notes</h3></div>
+			<label id="ContactNotes"></label>
+		</div>
+		<div id="PhysicalDescDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Physical description</h3></div>
+			<label id="ContactPhysicalDesc"></label>
+		</div>
+		<div id="MetPersonDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Where I met this person</h3></div>
+			<label id="ContactMetPerson"></label>
+		</div>
+		<div id="BirthdayDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Birthday</h3></div>
+			<label id="ContactBirthday"></label>
+		</div>
+		<div id="PhoneDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Phone</h3></div>
+			<div id="PhoneInnerDiv">
+			</div>
+		</div>
+		<div id="EmailDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Email</h3></div>
+			<div id="EmailInnerDiv">
+			</div>
+		</div>
+		<div id="AddressDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Address</h3></div>
+			<div id="AddressInnerDiv">
+			</div>
+		</div>
+		<div id="PersonalityDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Personality</h3></div>
+			<div id="PersonalityInnerDiv">
+			</div>
+		</div>
+		<div id="GroupDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Group</h3></div>
+			<label id="ContactGroup"></label>
+		</div>
+	</div>
+</div>

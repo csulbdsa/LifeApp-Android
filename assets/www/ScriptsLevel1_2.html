@@ -1,0 +1,82 @@
+<div id="ScriptsLevel1_2" data-role="page" data-theme="a">
+	<script>
+		var SL1_2 = new Object();
+		SL1_2.func = new Object();
+		SL1_2.page = $("#ScriptsLevel1_2");
+		
+		SL1_2.func.LoadLevel1_2 = function()
+		{
+			RemoveSession(C.ScriptsLevel1ID);
+			RemoveSession(C.ScriptsLevel2ID);
+			RemoveSession(C.ScriptsLevel1Value);
+			RemoveSession(C.ScriptsLevel2Value);
+			
+			if(IsNull(scriptsXML))
+			{
+				$.get("Scripts.xml", function (value) {
+					scriptsXML = $(value);
+					SL1_2.func.LoadList()
+				});
+			}
+			else
+			{
+				SL1_2.func.LoadList()
+			}
+		}
+
+		SL1_2.func.LoadList = function()
+		{
+			var level1 = scriptsXML.find("level1");
+			var htmlContent = C.NoContentHTML;
+			
+			if(!IsNullOrUndefined(level1) && level1.size() > 0)
+			{
+				var htmlContent = '<ul id="Level1List" data-role="collapsible-set" style="padding:0px;">';
+
+				level1.each(function(){
+					htmlContent += '<div id="' + $(this).attr("id") + '" data-role="collapsible"><h3>' + $(this).attr("value") + '</h3>' + SL1_2.func.GetLevel2HTML(this) + '</div>';
+				});
+			
+				htmlContent += '</ul>';
+			}
+			
+			SL1_2.page.find("#ContentDiv").html(htmlContent).trigger("create");
+		}
+		
+		SL1_2.func.GetLevel2HTML = function(level1)
+		{
+			var level2 = $(level1).find("level2");
+			
+			var htmlContent = C.NoContentHTML;
+			
+			if(!IsNullOrUndefined(level2) && level2.size() > 0)
+			{
+				htmlContent = '<ul id="Level2List" data-role="listview">';
+				
+				level2.each(function(){
+					htmlContent += '<li><a id="' + $(this).attr("id") + '" href="#" onClick="SL1_2.func.Level2Selected(\'' + $(level1).attr("id") + '\', \'' + $(level1).attr("value") + '\', \'' + $(this).attr("id") + '\', \'' + $(this).attr("value") + '\');">' + $(this).attr("value") + '</a></li>';
+				});
+			
+				htmlContent += '</ul>';
+			}
+			
+			return htmlContent;
+		}
+
+		SL1_2.func.Level2Selected = function(level1ID, level1Value, level2ID, level2Value)
+		{
+			SetSession(C.ScriptsLevel1ID, level1ID);
+			SetSession(C.ScriptsLevel1Value, level1Value);
+			
+			SetSession(C.ScriptsLevel2ID, level2ID);
+			SetSession(C.ScriptsLevel2Value, level2Value);
+			
+			Navigate(C.ScriptsLevel3ID);
+		}
+	</script>
+
+  	<div id="ScriptsLevel1_2Main" data-role="main" class="ui-content" style="padding:3.2px;">
+  		<div id="ContentDiv">
+  		</div>
+  	</div>
+</div>

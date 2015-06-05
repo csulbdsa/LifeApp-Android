@@ -1,0 +1,978 @@
+<div id="ContactEdit" data-role="page" data-theme="a">
+	<script>
+		var CE = new Object();
+		CE.func = new Object();
+		
+		CE.page = $("#ContactEdit");
+		CE.contentDiv = CE.page.find("#ContentDiv");
+		CE.photoOptionsPopup = CE.page.find("#PhotoOptionsPopup");
+		CE.groupPopup = CE.page.find("#GroupPopup");
+		CE.subGroupPopup = CE.page.find("#SubGroupPopup");
+		
+		CE.contactPhoto = CE.contentDiv.find("#ContactPhoto");
+		CE.contactName = CE.contentDiv.find("#ContactName");
+		CE.contactRating = CE.contentDiv.find("#ContactRating");
+		CE.contactNotes = CE.contentDiv.find("#ContactNotes");
+		CE.contactPhysicalDesc = CE.contentDiv.find("#ContactPhysicalDesc");
+		CE.contactMetPerson = CE.contentDiv.find("#ContactMetPerson");
+		CE.contactBirthdayMonth = CE.contentDiv.find("#ContactBirthdayMonth");
+		CE.contactBirthdayDay = CE.contentDiv.find("#ContactBirthdayDay");
+		CE.contactGroup = CE.contentDiv.find("#ContactGroup");
+		CE.contactSubGroup = CE.contentDiv.find("#ContactSubGroup");
+		CE.phoneInnerDiv = CE.contentDiv.find("#PhoneInnerDiv");
+		CE.emailInnerDiv = CE.contentDiv.find("#EmailInnerDiv");
+		CE.addressInnerDiv = CE.contentDiv.find("#AddressInnerDiv");
+		CE.personalityInnerDiv = CE.contentDiv.find("#PersonalityInnerDiv");
+		CE.photoDelete = CE.photoOptionsPopup.find("#PhotoDelete");
+		CE.groupName = CE.groupPopup.find("#GroupName");
+		CE.groupDesc = CE.groupPopup.find("#GroupDesc");
+		//CE.groupColor = CE.groupPopup.find("#GroupColor");
+		CE.groupColorCanvas = CE.groupPopup.find("#GroupColorCanvas");
+		CE.groupColorBox = CE.groupPopup.find("#GroupColorBox");
+		CE.groupColorCheckbox = CE.groupPopup.find("#GroupColorCheckbox");
+		CE.groupColorPickerDiv = CE.groupPopup.find("#GroupColorPickerDiv");
+		CE.groupNameSub = CE.subGroupPopup.find("#GroupNameSub");
+		CE.subGroupName = CE.subGroupPopup.find("#SubGroupName");
+		CE.subGroupDesc = CE.subGroupPopup.find("#SubGroupDesc");
+		
+		CE.noPhotoFlag  = true;
+		CE.newHTMLLabelID = "";
+		
+		CE.contactSource = null;
+		CE.contactMode = null;
+		CE.contactIndex = -1;
+		CE.selectedContact = null;
+		
+		CE.func.LoadContact = function()
+		{
+			CE.contactSource = GetSession(C.ContactSource);
+			CE.contactIndex = parseInt(GetSession(C.ContactIndex));
+	
+			if(isNaN(CE.contactIndex))
+			{
+				CE.contactIndex = null;
+			}
+			
+			CE.contactMode = GetSession(C.ContactMode);
+			
+			switch(CE.contactMode)
+			{
+				case C.ContactNew:
+					CE.selectedContact = new Object();
+					break;
+				
+				case C.ContactEdit:
+					if(!IsNull(CE.contactIndex) && !isNaN(CE.contactIndex))
+					{
+						if(CE.contactIndex >= 0 && CE.contactIndex < savedContacts.length)
+						{
+							CE.selectedContact = savedContacts[CE.contactIndex];
+						}
+						else
+						{
+							OnError("CE-101", true);
+							return;
+						}
+					}
+					else
+					{
+						OnError("CE-102", true);
+						return;
+					}
+					
+					break;
+					
+				case C.ContactPhonebook:
+					CE.selectedContact = JSON.parse(GetSession(C.SelectedContact));
+					
+					if(IsNull(CE.selectedContact))
+					{
+						OnError("CE-103", true);
+						return;
+					}
+					
+					break;
+			}
+			
+			if(IsNull(CE.contactSource) && IsNull(CE.contactMode))
+			{
+				OnError("CE-104", true);
+				return;
+			}
+			
+			CE.func.GroupsLoad();
+			
+			/* var src = GetContactImageSource(CE.selectedContact);
+			CE.noPhotoFlag = (src == C.NoContactImagePath)? true: false;
+			CE.contactPhoto.attr("src", src); */
+		 	
+			GetContactImageSource(CE.selectedContact, CE.func.SetImage);
+			
+			CE.contactName.val(GetContactName(CE.selectedContact));
+
+			if(CheckObjectProperty(CE.selectedContact, "note", false))
+			{
+				CE.contactNotes.val(CE.selectedContact.note);
+			}
+			
+			if(CheckObjectProperty(CE.selectedContact, "physicalDesc", false))
+			{
+				CE.contactPhysicalDesc.val(CE.selectedContact.physicalDesc); 
+			}
+			
+			if(CheckObjectProperty(CE.selectedContact, "metPerson", false))
+			{
+				CE.contactMetPerson.val(CE.selectedContact.metPerson);
+			}
+			
+			if(CheckObjectProperty(CE.selectedContact, "rating", false))
+			{
+				CE.contactRating.raty({
+					score: CE.selectedContact.rating,
+					cancel: true
+				});
+			}
+			else
+			{
+				CE.contactRating.raty({
+					cancel: true
+				});
+			}
+			
+			if(CheckObjectProperty(CE.selectedContact, "birthday", false))
+			{
+				if(CheckObjectProperty(CE.selectedContact.birthday, "month", false) && CheckObjectProperty(CE.selectedContact.birthday, "day", false))
+				{
+					CE.contactBirthdayMonth.val(CE.selectedContact.birthday.month).selectmenu('refresh');
+					
+					//if(CheckObjectProperty(CE.selectedContact.birthday, "day", false))
+					//{
+						CE.func.LoadBirthdayDay(CE.selectedContact.birthday.month, CE.selectedContact.birthday.day);
+					//}
+				}
+			}
+			
+			var phoneInnerHTML = "";
+			if(CheckObjectProperty(CE.selectedContact, "phoneNumbers", true))
+			{
+				var length = CE.selectedContact.phoneNumbers.length;
+			
+				if(length == 0)
+				{
+					phoneInnerHTML += CE.func.GetHTML('phone', true, null);
+				}
+				else
+				{
+					for(var phoneIndex = 0; phoneIndex < length; phoneIndex++)
+					{
+						phoneInnerHTML += CE.func.GetHTML('phone', false, phoneIndex);
+					}
+				}
+			}
+			else
+			{
+				phoneInnerHTML += CE.func.GetHTML('phone', true, null);
+			}
+			CE.phoneInnerDiv.append(phoneInnerHTML).trigger('create');
+	
+			var emailInnerHTML = "";
+			if(CheckObjectProperty(CE.selectedContact, "emails", true))
+			{
+				var length = CE.selectedContact.emails.length;
+			
+				for(var emailIndex = 0; emailIndex < length; emailIndex++)
+				{
+					emailInnerHTML += CE.func.GetHTML('email', false, emailIndex);
+				}
+			}
+			CE.emailInnerDiv.append(emailInnerHTML).trigger('create');
+				
+			var addressInnerHTML = "";
+			if(CheckObjectProperty(CE.selectedContact, "addresses", true))
+			{
+				var length = CE.selectedContact.addresses.length;
+			
+				for(var addressIndex = 0; addressIndex < length; addressIndex++)
+				{
+					addressInnerHTML += CE.func.GetHTML('address', false, addressIndex);
+				}
+			}
+			CE.addressInnerDiv.append(addressInnerHTML).trigger('create');
+			
+			var personalityInnerHTML = "";
+			if(CheckObjectProperty(CE.selectedContact, "personalities", true))
+			{
+				var length = CE.selectedContact.personalities.length;
+			
+				for(var personalityIndex = 0; personalityIndex < length; personalityIndex++)
+				{
+					personalityInnerHTML += CE.func.GetHTML('personality', false, personalityIndex);
+				}
+			}
+			CE.personalityInnerDiv.append(personalityInnerHTML).trigger('create');
+			
+			if(CheckObjectProperty(CE.selectedContact, "groupID", false))
+			{
+				if(CheckObjectProperty(CE.selectedContact, "subGroupID", false))
+				{
+					CE.func.GroupsLoad(CE.selectedContact.groupID, CE.selectedContact.subGroupID);
+				}
+				else
+				{
+					CE.func.GroupsLoad(CE.selectedContact.groupID);
+				}
+			}
+		}
+		
+		CE.func.GetHTML = function (type, isNew, secondaryIndex)
+		{
+			var html = '';
+			var id = GenerateUUID();
+			CE.newHTMLLabelID = "";
+			
+			switch(type)
+			{ 
+				case 'phone':
+					var phoneType = "";
+					var phoneValue = "";
+					CE.newHTMLLabelID = "PhoneNumberLabel" + id;
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CE.selectedContact, "phoneNumbers", true))
+						{
+							if(CheckObjectProperty(CE.selectedContact.phoneNumbers[secondaryIndex], "type", false))
+							{
+								phoneType = ToUpperCase(CE.selectedContact.phoneNumbers[secondaryIndex].type);
+							}
+							
+							if(CheckObjectProperty(CE.selectedContact.phoneNumbers[secondaryIndex], "value", false))
+							{
+								phoneValue = CE.selectedContact.phoneNumbers[secondaryIndex].value;
+							}
+						}
+					}
+					
+					html =
+						'<div class="ui-grid-a PhoneNumber">' +
+							'<div class="ui-block-a" style="width: 30%;">' +
+								'<input id="PhoneNumberLabel' + id + '" class="PhoneNumberLabel" type="text" data-clear-btn="true" value="' + phoneType + '" placeholder="Label">' +
+							'</div>' +
+							'<div class="ui-block-b" style="width: 70%;">' +
+								'<input id="PhoneNumberValue' + id + '" class="PhoneNumberValue" type="tel" data-clear-btn="true" value="' + phoneValue + '" placeholder="Phone">' +
+							'</div>' +
+						'</div>';
+					break;
+					
+				case 'email':
+					var emailType = "";
+					var emailValue = "";
+					CE.newHTMLLabelID = "EmailLabel" + id;
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CE.selectedContact, "emails", true))
+						{
+							if(CheckObjectProperty(CE.selectedContact.emails[secondaryIndex], "type", false))
+							{
+								emailType = ToUpperCase(CE.selectedContact.emails[secondaryIndex].type);
+							}
+							
+							if(CheckObjectProperty(CE.selectedContact.emails[secondaryIndex], "value", false))
+							{
+								emailValue = CE.selectedContact.emails[secondaryIndex].value;
+							}
+						}
+					}
+					
+					html =
+						'<div class="ui-grid-a Email">' +
+							'<div class="ui-block-a" style="width: 30%;">' +
+								'<input id="EmailLabel' + id + '" class="EmailLabel" type="text" data-clear-btn="true" value="' + emailType + '" placeholder="Label">' +
+							'</div>' +
+							'<div class="ui-block-b" style="width: 70%;">' +
+								'<input id="EmailValue' + id + '" class="EmailValue" type="email" data-clear-btn="true" value="' + emailValue + '" placeholder="Email">' +
+							'</div>' +
+						'</div>';
+					break;
+			
+				case 'address':
+					var addressType = "";
+					var addressValue = "";
+					CE.newHTMLLabelID = "AddressLabel" + id;
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CE.selectedContact, "addresses", true))
+						{
+							if(CheckObjectProperty(CE.selectedContact.addresses[secondaryIndex], "type", false))
+							{
+								addressType = ToUpperCase(CE.selectedContact.addresses[secondaryIndex].type);
+							}
+							
+							if(CheckObjectProperty(CE.selectedContact.addresses[secondaryIndex], "streetAddress", false))
+							{
+								addressValue = CE.selectedContact.addresses[secondaryIndex].streetAddress;
+							}
+						}
+					}
+					
+					html =
+						'<div class="ui-grid-a Address">' +
+							'<div class="ui-block-a" style="width: 30%;">' +
+								'<input id="AddressLabel' + id + '" class="AddressLabel" type="text" data-clear-btn="true" value="' + addressType + '" placeholder="Label">' +
+							'</div>' +
+							'<div class="ui-block-b" style="width: 70%;">' +
+								'<textarea id="AddressValue' + id + '" class="AddressValue" placeholder="Address">' + addressValue + '</textarea>' +
+							'</div>' +
+						'</div>';
+					break;
+					
+				case 'personality':
+					var personalityValue = "";
+					CE.newHTMLLabelID = "PersonalityValue" + id;
+					
+					if(!isNew)
+					{
+						if(CheckObjectProperty(CE.selectedContact, "personalities", true))
+						{
+							if(CheckObjectProperty(CE.selectedContact.personalities[secondaryIndex], "value", false))
+							{
+								personalityValue = CE.selectedContact.personalities[secondaryIndex].value;
+							}
+						}
+					}
+					
+					html = '<input id="PersonalityValue' + id + '" class="Personality" type="text" data-clear-btn="true" value="' + personalityValue + '" placeholder="Personality">';
+					break;
+			}
+			
+			return html;
+		}
+			
+		CE.func.AddNewField = function (type)
+		{
+			switch(type)
+			{
+				case 'phone':
+					CE.phoneInnerDiv.append(CE.func.GetHTML('phone', true, null)).trigger('create').find("#" + CE.newHTMLLabelID).focus();
+					break;
+					
+				case 'email':
+					CE.emailInnerDiv.append(CE.func.GetHTML('email', true, null)).trigger('create').find("#" + CE.newHTMLLabelID).focus();
+					break;
+					
+				case 'address':
+					CE.addressInnerDiv.append(CE.func.GetHTML('address', true, null)).trigger('create').find("#" + CE.newHTMLLabelID).focus();
+					break;
+					
+				case 'personality':
+					CE.personalityInnerDiv.append(CE.func.GetHTML('personality', true, null)).trigger('create').find("#" + CE.newHTMLLabelID).focus();
+					break;
+			}
+		}
+		
+		CE.func.SetImage = function(contact, src)
+		{
+			CE.contactPhoto.attr("src", src);
+			CE.noPhotoFlag = (src == C.NoContactImagePath)? true: false;
+		}
+			
+		CE.func.BirthdayMonthSelected = function(val)
+		{
+			CE.func.LoadBirthdayDay(parseInt(val.value), "");
+		}
+		
+		CE.func.LoadBirthdayDay = function(month, day)
+		{
+		    var numDays = 0;
+		    
+		    switch(month)
+		    {
+			    case 2:
+			    	numDays = 29;
+			    	break;
+			    	
+			    case 4:
+			    case 6:
+			    case 9:
+			    case 11:
+					numDays = 30;
+					break;
+					
+			    case 1:
+			    case 3:
+			    case 5:
+			    case 7:
+			    case 8:
+			    case 10:
+			    case 12:
+			    	numDays = 31;
+			    	break;
+		    }
+		    
+		    var dayOptionHTML = '<option style="color: grey;" value="">Day</option>';
+		    
+		    for(var i = 1; i <= numDays; i++)
+	    	{
+		    	dayOptionHTML += '<option value="' + i + '">' + i + '</option>';
+		    }
+	
+		    CE.contactBirthdayDay.find('option').remove().end().append(dayOptionHTML).val(day).selectmenu('refresh');
+		}
+		
+		function Save()
+		{
+			var name = new Object();
+			if(IsNullOrUndefinedOrEmpty(CE.contactName.val()))
+			{
+				CE.selectedContact.displayName = name.formatted = null;
+				CE.selectedContact.name = null;
+			}
+			else
+			{
+				CE.selectedContact.displayName = name.formatted = CE.contactName.val().trim();
+				CE.selectedContact.name = name;
+			}
+
+			CE.selectedContact.physicalDesc = IsNullOrUndefinedOrEmpty(CE.contactPhysicalDesc.val())? null: CE.contactPhysicalDesc.val().trim();
+			CE.selectedContact.metPerson = IsNullOrUndefinedOrEmpty(CE.contactMetPerson.val())? null: CE.contactMetPerson.val().trim();
+			CE.selectedContact.note = IsNullOrUndefinedOrEmpty(CE.contactNotes.val())? null: CE.contactNotes.val().trim();
+			
+			var rating = CE.contactRating.raty("score");
+			if(IsNullOrUndefined(rating))
+			{
+				rating = 0;
+			}
+			CE.selectedContact.rating = rating;
+			
+			CE.selectedContact.photo = null;
+			
+			if(!CE.noPhotoFlag)
+			{
+				CE.selectedContact.photo = GetBase64Image(CE.contactPhoto);
+				
+				if(IsNullOrUndefinedOrEmpty(CE.selectedContact.photo))
+				{
+					CE.selectedContact.photo = null;
+				}
+			}
+
+			//"phoneNumbers":[{"type":"mobile","value":"(678) 814-8222","id":"33","pref":false}]
+			var phoneNumbers = [];
+			
+			CE.phoneInnerDiv.find(".PhoneNumber").each(function () {
+				var phoneNumber = new Object();
+				phoneNumber.type = $(this).find(".PhoneNumberLabel").val();
+				phoneNumber.value = $(this).find(".PhoneNumberValue").val();
+				phoneNumber.pref = false;
+				
+				if(IsNullOrUndefinedOrEmpty(phoneNumber.type))
+				{
+					phoneNumber.type = ""; // C.NoLabel;
+				}
+				else
+				{
+					phoneNumber.type = ToUpperCase(phoneNumber.type);	
+				}
+				
+				if(!IsNullOrUndefinedOrEmpty(phoneNumber.value))
+				{
+					phoneNumbers.push(phoneNumber);
+				}
+			});
+			
+			if(phoneNumbers.length == 0)
+			{
+				phoneNumbers = null;
+			}
+			
+			CE.selectedContact.phoneNumbers = phoneNumbers;
+			
+			//"emails":[{"type":"home","value":"1111@asd.com","id":"47","pref":false},{"type":"work","value":"22222@sdf.com","id":"48","pref":false}]
+			var emails = [];
+			
+			CE.emailInnerDiv.find(".Email").each(function () {
+				var email = new Object();
+				email.type = $(this).find(".EmailLabel").val();
+				email.value = $(this).find(".EmailValue").val();
+				email.pref = false;
+				
+				if(IsNullOrUndefinedOrEmpty(email.type))
+				{
+					email.type = ""; // C.NoLabel;
+				}
+				else
+				{
+					email.type = ToUpperCase(email.type);	
+				}
+				
+				if(!IsNullOrUndefinedOrEmpty(email.value))
+				{
+					emails.push(email);
+				}
+			});
+			
+			if(emails.length == 0)
+			{
+				emails = null;
+			}
+			
+			CE.selectedContact.emails = emails;
+			
+			//"addresses":[{"streetAddress":"Address 1111111","id":"45","formatted":"Address 1111111","type":"home","pref":false},{"streetAddress":"Addrtesssss 22222","id":"46","formatted":"Addrtesssss 22222","type":"work","pref":false}]
+			var addresses = [];
+			
+			CE.addressInnerDiv.find(".Address").each(function () {
+				var address = new Object();
+				address.type = $(this).find(".AddressLabel").val();
+				address.streetAddress = address.formatted = $(this).find(".AddressValue").val();
+				address.pref = false;
+				
+				if(IsNullOrUndefinedOrEmpty(address.type))
+				{
+					address.type = ""; // C.NoLabel;
+				}
+				else
+				{
+					address.type = ToUpperCase(address.type);	
+				}
+				
+				if(!IsNullOrUndefinedOrEmpty(address.streetAddress))
+				{
+					addresses.push(address);
+				}
+			});
+			
+			if(addresses.length == 0)
+			{
+				addresses = null;
+			}
+			
+			CE.selectedContact.addresses = addresses;
+			
+			//
+			var personalities = [];
+			
+			CE.personalityInnerDiv.find(".Personality").each(function () {
+				var personality = new Object();
+				personality.value = $(this).val();
+				
+				if(!IsNullOrUndefinedOrEmpty(personality.value))
+				{
+					personalities.push(personality);
+				}
+			});
+			
+			if(personalities.length == 0)
+			{
+				personalities = null;
+			}
+			
+			CE.selectedContact.personalities = personalities;
+			
+			//
+			var birthday = new Object(); 
+			birthday.month = parseInt(CE.contactBirthdayMonth.val());
+			birthday.day = parseInt(CE.contactBirthdayDay.val());
+			
+			if(isNaN(birthday.month) || isNaN(birthday.day) || IsNullOrUndefinedOrEmpty(birthday.month) || IsNullOrUndefinedOrEmpty(birthday.day))
+			{
+				birthday = null;
+			}
+			
+			CE.selectedContact.birthday = birthday;
+			
+			CE.selectedContact.groupID = parseInt(CE.contactGroup.val());
+			CE.selectedContact.subGroupID = parseInt(CE.contactSubGroup.val());
+			
+			if(isNaN(CE.selectedContact.groupID))
+			{
+				CE.selectedContact.groupID = null;
+			}
+			
+			if(isNaN(CE.selectedContact.groupID) || isNaN(CE.selectedContact.subGroupID))
+			{
+				CE.selectedContact.subGroupID = null;
+			} 
+			
+			switch(CE.contactMode)
+			{
+				case C.ContactNew:
+				case C.ContactPhonebook:
+					CE.selectedContact.uuid = GenerateUUID();
+					InsertContact(CE.selectedContact);
+					break;
+				
+				case C.ContactEdit:
+					InsertContact(CE.selectedContact, CE.contactIndex);
+					break;
+			}
+			
+			switch(CE.contactSource)
+			{
+				case C.RelationshipHomeID:
+					Navigate(C.RelationshipHomeID);
+					break;
+					
+				case C.ContactViewID:
+					Navigate(C.ContactViewID);
+					break;
+			}
+		}
+
+		CE.func.OpenPhotoView = function(sourceType)
+		{
+			CE.photoOptionsPopup.popup("close");
+			
+			switch(sourceType)
+			{
+				case 'camera':
+					sourceType = pictureSource.CAMERA;
+					break;
+					
+				case 'gallery':
+					sourceType = pictureSource.SAVEDPHOTOALBUM;
+					break;
+					
+				default:
+					sourceType = pictureSource.CAMERA;
+					break;
+			}
+			
+			navigator.camera.getPicture(CE.func.OnPhotoSuccess, CE.func.OnPhotoError, {	quality: 50, 
+																						allowEdit: true,
+																						destinationType: destinationType.FILE_URI,
+																						sourceType: sourceType });
+		}
+		
+		CE.func.OnPhotoSuccess = function(imageURI)
+	    {
+	    	CE.contactPhoto.attr("src", imageURI);
+	    	CE.noPhotoFlag = false;
+		}
+		
+		CE.func.OnPhotoError = function(message)
+	    {
+	        //alert('Error: ' + message); //Shows error even on user cancel
+	    }
+	    
+		CE.func.OnPhotoDelete = function()
+	    {
+	    	CE.contactPhoto.attr("src", C.NoContactImagePath);
+	    	CE.noPhotoFlag = true;
+	    	CE.photoOptionsPopup.popup("close");
+	    }
+		
+		CE.func.SetPhotoPopup = function()
+		{
+			CE.noPhotoFlag? CE.photoDelete.hide(): CE.photoDelete.show();
+		}
+		
+		CE.func.GroupsLoad = function(groupID, subGroupID)
+		{
+			//console.log("@Groupsload GID: " + groupID + ", SGID: " + subGroupID);
+			LoadGroups(CE.func.GroupsLoadContinue, groupID, subGroupID);
+		}
+		
+		CE.func.GroupsLoadContinue = function(groups, groupID, subGroupID)
+		{
+			//console.log("@Groupsloadcontinue GID: " + groupID + ", SGID: " + subGroupID);
+			var groupsHTML = '<option style="color: grey;" value="">Group</option>';
+			
+			for(var i = 0; i < groups.length; i++)
+			{
+				groupsHTML += '<option value="' + groups[i].id + '">' + groups[i].label + '</option>';
+			}
+			
+			groupsHTML += "<option style='background-color: #D9853B; color: white;' value='addnew'>Add group</option>";
+			
+			var selectGroupID = groupID;
+			if(IsNullOrUndefined(selectGroupID) || isNaN(selectGroupID))
+			{
+				selectGroupID = "";
+			}
+			
+			CE.contactGroup.find('option').remove().end().append(groupsHTML).val(selectGroupID).selectmenu('refresh');
+			CE.func.SubGroupsLoad(groupID, subGroupID);
+		}
+		
+		CE.func.SubGroupsLoad = function(groupID, subGroupID)
+		{
+			//console.log("@subGroupsload GID: " + groupID + ", SGID: " + subGroupID);
+			LoadSubGroups(CE.func.SubGroupsLoadContinue, groupID, subGroupID)
+		}
+		
+		CE.func.SubGroupsLoadContinue = function(subGroups, groupID, subGroupID)
+		{
+			//console.log("@subGroupsloadcontinue GID: " + groupID + ", SGID: " + subGroupID);	
+			var subGroupsHTML = '<option style="color: grey;" value="">Sub-group</option>';
+			
+			for(var i = 0; i < subGroups.length; i++)
+			{
+				subGroupsHTML += '<option value="' + subGroups[i].id + '">' + subGroups[i].label + '</option>';
+			}
+			
+			if(!IsNullOrUndefined(groupID) && !isNaN(groupID))
+			{
+				subGroupsHTML += "<option style='background-color: #D9853B; color: white;' value='addnew'>Add sub-group</option>";
+			}
+			
+			var selectSubGroupID = subGroupID;
+			if(IsNullOrUndefined(selectSubGroupID) || isNaN(selectSubGroupID))
+			{
+				selectSubGroupID = "";
+			}
+			
+			CE.contactSubGroup.find('option').remove().end().append(subGroupsHTML).val(selectSubGroupID).selectmenu('refresh');
+		}
+
+		CE.func.GroupSelected = function(val)
+		{
+			if(val.value == "addnew")
+			{
+				CE.groupName.val("");
+				CE.groupDesc.val("");
+				CE.groupColorCheckbox.prop('checked', false);
+				CE.groupColorPickerDiv.show();
+				$("#GroupColor").val(0).slider("refresh");
+				CE.func.SetBoxColor($("#GroupColor").val());
+				
+				CE.groupPopup.popup("open");
+			}
+
+			CE.func.SubGroupsLoad(parseInt(val.value));
+		}
+		
+		CE.func.GroupSave = function()
+		{
+			var group = new Object();
+			group.label = CE.groupName.val();
+			
+			if(!IsNullOrEmpty(group.label))
+			{
+				group.desc = CE.groupDesc.val();
+				
+				if(CE.groupColorCheckbox.prop("checked"))
+				{
+					group.color = $("#GroupColor").val();
+				}
+				else
+				{
+					group.color = null;
+				}
+				
+				InsertGroup(group, CE.func.GroupSaveComplete);
+			}
+			
+			
+			
+			//<!-- 	tx.executeSql('CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, label, desc, color, sysKey TEXT UNIQUE, lastModified)');
+			//tx.executeSql('CREATE TABLE IF NOT EXISTS subGroups (id INTEGER PRIMARY KEY AUTOINCREMENT, groupID, label, desc, color, sysKey TEXT UNIQUE, lastModified, FOREIGN KEY(groupID) REFERENCES groups(id))');
+			 //-->
+		}
+		
+		CE.func.GroupSaveComplete = function(groupId)
+		{
+			CE.groupPopup.popup("close");
+			CE.func.GroupsLoad(groupId);
+		}
+		
+		CE.func.SubGroupSelected = function(val)
+		{
+			if(val.value == "addnew")
+			{
+				CE.groupNameSub.text(CE.contactGroup.find('option:selected').text());
+				CE.subGroupName.val("");
+				CE.subGroupDesc.val("");
+				
+				CE.subGroupPopup.popup("open");
+			}
+		}
+		
+		CE.func.SubGroupSave = function()
+		{
+			var subGroup = new Object();
+			subGroup.groupID = parseInt(CE.contactGroup.val());
+			subGroup.label = CE.subGroupName.val();
+			
+			if(!isNaN(subGroup.groupID) && !IsNullOrEmpty(subGroup.label))
+			{
+				subGroup.desc = CE.subGroupDesc.val();
+				InsertSubGroup(subGroup, CE.func.SubGroupSaveComplete);
+			}
+		}
+		
+		CE.func.SubGroupSaveComplete = function(groupId, subGroupId)
+		{
+			CE.subGroupPopup.popup("close");
+			CE.func.GroupsLoad(groupId, subGroupId);
+		}
+		
+		CE.func.SetBoxColor = function(color)
+ 	    {
+			box.style.background = 'hsla(' + color + ', 100%, 50%, 0.3)';
+			var clr = CE.groupColorBox.css('background-color');
+			CE.groupColorBox.attr('data-color', clr).trigger('click');
+ 	    }
+		
+        var box = CE.groupColorBox[0];
+        CE.groupColorCanvas.sketch();
+        CE.func.SetBoxColor($("#GroupColor").val());
+        
+        $(document).on( "slidestop", "#GroupColor", function( event, ui ) {
+        	CE.func.SetBoxColor($(this).val());
+        });
+	</script>
+	
+	<style type="text/css">
+		.ui-slider-track {
+		    background:url("css/images/colorpicker.png") repeat-x !important;
+		    margin: 0 15px 0 15px !important;
+		}
+		
+		#GroupColor {
+		    display: none;
+		}
+
+		#GroupColorBox {
+		    width:30px;
+		    height:30px;
+		    border:1px solid #000;
+		    display: inline-block;
+		}
+	</style>
+	
+	<div id="ContentDiv" style="background-color: white;">
+		<div id="ImageDiv" style="text-align: center;">
+			<a href="#PhotoOptionsPopup" data-rel="popup" data-role="button" data-inline="true" style="background-color: #444444;" onClick="CE.func.SetPhotoPopup();">
+				<img id="ContactPhoto"  height="200px" width="200px" src="">
+			</a>
+		</div>
+		<div id="NameDiv">
+			<div style="background-color: black; color: #ffc72a;"><h3 style="padding: 6px;">Name</h3></div>
+			<input id="ContactName" placeholder="Name" type="text" data-clear-btn="true" value="">
+		</div>
+		<div id="RatingDiv">
+			<div style="background-color: #444444; color: #ffc72a;"><h3 style="padding: 6px;">Rating</h3></div>
+			<div id="ContactRating"></div>
+		</div>
+		<div id="NoteDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Notes</h3></div>
+			<textarea id="ContactNotes" placeholder="Notes" data-clear-btn="true"></textarea>
+		</div>
+		<div id="PhysicalDescDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Physical description</h3></div>
+			<textarea id="ContactPhysicalDesc" placeholder="Physical description"></textarea>
+		</div>
+		<div id="MetPersonDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Where I met this person</h3></div>
+			<textarea id="ContactMetPerson" placeholder="Where I met this person" data-clear-btn="true"></textarea>
+		</div>
+		<div id="BirthdayDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Birthday</h3></div>
+			<div class="ui-grid-a">
+				<div class="ui-block-a">
+					<select id="ContactBirthdayMonth" onChange="CE.func.BirthdayMonthSelected(this);">
+						<option style="color: grey;" value="">Month</option>
+						<option value="1">January</option>
+						<option value="2">February</option>
+						<option value="3">March</option>
+						<option value="4">April</option>
+						<option value="5">May</option>
+						<option value="6">June</option>
+						<option value="7">July</option>
+						<option value="8">August</option>
+						<option value="9">September</option>
+						<option value="10">October</option>
+						<option value="11">November</option>
+						<option value="12">December</option>
+					</select>
+				</div>
+				<div class="ui-block-b">
+					<select id="ContactBirthdayDay">
+						<option style="color: grey;" value="">Day</option>
+					</select>
+				</div>
+			</div>
+		</div>
+		<div id="PhoneDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Phone</h3></div>
+			<div id="PhoneInnerDiv">
+			</div>
+			<a id="PhoneAddNewButton" href="#" style="background-color: #ffc72a; color: black;" onClick="CE.func.AddNewField('phone');" data-role="button" data-icon="plus" data-iconpos="left">Add phone</a>
+		</div>
+		<div id="EmailDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Email</h3></div>
+			<div id="EmailInnerDiv">
+			</div>
+			<a id="EmailAddNewButton" href="#" style="background-color: #ffc72a; color: black;" onClick="CE.func.AddNewField('email');" data-role="button" data-icon="plus" data-iconpos="left">Add email</a>
+		</div>
+		<div id="AddressDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Address</h3></div>
+			<div id="AddressInnerDiv">
+			</div>
+			<a id="AddressAddNewButton" href="#" style="background-color: #ffc72a; color: black;" onClick="CE.func.AddNewField('address');" data-role="button" data-icon="plus" data-iconpos="left">Add address</a>
+		</div>
+		<div id="PersonalityDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Personality</h3></div>
+			<div id="PersonalityInnerDiv">
+			</div>
+			<a id="PersonalityAddNewButton" href="#" style="background-color: #ffc72a; color: black;" onClick="CE.func.AddNewField('personality');" data-role="button" data-icon="plus" data-iconpos="left">Add personality</a>
+		</div>
+		<div id="GroupDiv">
+			<div style="background-color: #444444; color: white;"><h3 style="padding: 6px;">Group</h3></div>
+			<div class="ui-grid-a">
+				<div class="ui-block-a">
+					<select id="ContactGroup" onChange="CE.func.GroupSelected(this);">
+					</select>
+				</div>
+				<div class="ui-block-b">
+					<select id="ContactSubGroup" onChange="CE.func.SubGroupSelected(this);">
+					</select>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div data-role="popup" id="PhotoOptionsPopup" data-theme="b">
+		<ul id="Level1List" data-role="listview">
+			<li><a id="OpenCameraButton" href="#" onClick="CE.func.OpenPhotoView('camera');">Camera</a></li>
+			<li><a id="OpenGalleryButton" href="#" onClick="CE.func.OpenPhotoView('gallery');">Gallery</a></li>
+			<li id="PhotoDelete"><a id="DeletePhotoButton" href="#" onClick="CE.func.OnPhotoDelete();">Delete</a></li>
+		</ul>
+	</div>
+	
+	<div data-role="popup" id="GroupPopup" data-theme="a" class="ui-corner-all">
+		<form>
+			<div style="padding:10px;">
+				<h3>New group</h3>
+				<input id="GroupName" placeholder="Label" type="text" data-clear-btn="true">
+				<textarea id="GroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
+				<label><input id="GroupColorCheckbox" type="checkbox" onChange="CE.groupColorPickerDiv.toggle();">Default color</label>
+				<div id="GroupColorPickerDiv" class="ui-grid-a">
+					<div class="ui-block-a" style="width:80%; padding-left:2%; padding-right:2%;">
+						<input id="GroupColor" min="1" max="266" value="1" type="range"/>
+					</div>
+					<div class="ui-block-b" style="width:20%;">
+						<a href="#" id="GroupColorBox"></a>
+						<canvas id="GroupColorCanvas" width="0" height="0" style="display:none;"></canvas>
+					</div>
+				</div>
+				<a href='#' data-role='button' onClick='CE.func.GroupSave();'>Save</a>
+			</div>
+		</form>
+	</div>
+	
+	<div data-role="popup" id="SubGroupPopup" data-theme="a" class="ui-corner-all">
+		<form>
+			<div style="padding:10px;">
+				<h3>New sub-group</h3>
+				<label id="GroupNameSub" data-mini="true"></label>
+				<input id="SubGroupName" placeholder="Label" type="text" data-clear-btn="true">
+				<textarea id="SubGroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
+				<a href='#' data-role='button' onClick='CE.func.SubGroupSave();'>Save</a>
+			</div>
+		</form>
+	</div>
+</div>

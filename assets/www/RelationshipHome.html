@@ -1,0 +1,149 @@
+<div id="RelationshipHome" data-role="page" data-theme="a">
+	<script>
+		var RH = new Object();
+		RH.func = new Object();
+		
+		RH.func.LoadSavedContacts = function()
+		{
+			RemoveSession(C.ContactIndex);
+			RemoveSession(C.ContactSource);
+			RemoveSession(C.SelectedContact);
+			
+			if(savedContacts.length > 0)
+			{
+				var relationshipHome = $("#RelationshipHome");
+				var htmlContent = "";
+
+				for(var i = 0; i < savedContacts.length; i++)
+				{
+				 	if(CheckObjectProperty(savedContacts[i], "phoneNumbers", true))
+					{
+				 		/* if(!IsNullOrUndefinedOrEmpty(savedContacts[i].phoneNumbers))
+				 		{ */
+				 			if(savedContacts[i].phoneNumbers.length > 0)
+			 				{
+				 				htmlContent += "<li><a href='tel:" + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "") + "' rel='external'>";
+			 				}
+				 			else
+			 				{
+				 				htmlContent += "<li><a href='' rel='external'>";
+			 				}
+				 		/* }
+				 		else
+			 			{
+				 			htmlContent += "<li><a href='' rel='external'>";
+				 		} */
+					}
+				 	else
+			 		{
+				 		htmlContent += "<li><a href='' rel='external'>";
+			 		}
+					
+				 	var contactName = GetContactName(savedContacts[i]);
+				 	
+				 	if(IsEmpty(contactName))
+			 		{
+				 		contactName = "&nbsp;";
+				 	}
+				 	
+					htmlContent +=
+						//"<img src='" + GetContactImageSource(savedContacts[i]) + "'>" +
+						"<img id='" + savedContacts[i].uuid + "-img' src='" + C.NoContactImagePath + "'>" +
+						"<h2>" + contactName + "</h2>" +
+						"<p>";
+						
+					if(CheckObjectProperty(savedContacts[i], "phoneNumbers", true))
+					{
+						/* if(!IsNullOrUndefinedOrEmpty(savedContacts[i].phoneNumbers))
+				 		{ */
+							if(savedContacts[i].phoneNumbers.length > 0)
+			 				{
+								htmlContent += "<b>" + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "type", false))? savedContacts[i].phoneNumbers[0].type: "") + ":</b> " + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "") + "</p>";
+			 				}
+							else
+							{
+								htmlContent += "<br/>";
+							}
+						/* } */
+					}
+					else
+					{
+						htmlContent += "<br/>";
+					}
+
+					htmlContent +=
+						"<div id='" + savedContacts[i].uuid + "-Rating' class='ratingstars'></div>" +
+						"</a>" + 
+						"<a href='#' onClick='RH.func.ViewContact(" + i + ", \"" + savedContacts[i].uuid + "\");'></a>" +
+						"</li>";
+				}
+
+				var list = relationshipHome.find("#SavedContactsList");
+				list.html(htmlContent)
+				list.listview('refresh');
+				
+				for(var i = 0; i < savedContacts.length; i++)
+				{
+					GetContactImageSource(savedContacts[i], RH.func.SetImage);
+					relationshipHome.find("#" + savedContacts[i].uuid + "-Rating").raty({ 
+																		score: savedContacts[i].rating,
+																		readOnly: true
+																	});
+				}
+			}
+			else
+			{
+				// No contacts to display
+			}
+		}
+		
+		RH.func.SetImage = function(contact, src)
+		{
+			$("#" + contact.uuid + "-img").attr("src", src);
+		}
+		
+		RH.func.AddNewContact = function() 
+		{
+			SetSession(C.ContactSource, C.RelationshipHomeID);
+			SetSession(C.ContactMode, C.ContactNew);
+			Navigate(C.ContactEditID);
+		}
+		
+		// ***** Clear these session where required in all pages
+		/* SetSession(C.ContactSource, C.RelationshipHomeID);
+		SetSession(C.SelectedContact, JSON.stringify(contact));
+		SetSession(C.ContactMode, C.ContactPhonebook);
+		SetSession(C.ContactIndex, index); */
+		
+		function Add()
+		{
+ 			navigator.contacts.pickContact(
+				function(contact)
+				{
+					SetSession(C.ContactSource, C.RelationshipHomeID);
+					SetSession(C.SelectedContact, JSON.stringify(contact));
+					SetSession(C.ContactMode, C.ContactPhonebook);
+					Navigate(C.ContactEditID);
+				},
+				function(error)
+				{
+					alert(C.ErrorOccurred + "(Error Code: RH-101)");
+				}
+			);
+		}
+		
+		RH.func.ViewContact = function(index, uuid)
+		{
+			SetSession(C.ContactSource, C.RelationshipHomeID);
+			SetSession(C.ContactIndex, index);
+			
+			Navigate(C.ContactViewID);
+		}
+	</script>
+	
+	<div id="ContentDiv">
+		<input type="button" onClick="RH.func.AddNewContact();" value="New Contact"/>
+		<ul data-role="listview" id="SavedContactsList">
+		</ul>
+	</div>
+</div>
