@@ -1,5 +1,7 @@
 <div id="ContactView" data-role="page" data-theme="a">
 	<script>
+		//**** confirmation before delete
+	
 		var CV = new Object();
 		CV.func = new Object();
 		
@@ -11,19 +13,6 @@
 		CV.page = $("#ContactView");
 		CV.contentDiv = CV.page.find("#ContentDiv");
 		CV.contactPhoto = CV.contentDiv.find("#ContactPhoto");
-		//CV.contactName = CV.contentDiv.find("#ContactName");
-		//CV.contactRating = CV.contentDiv.find("#ContactRating");
-		//CV.contactNotes = CV.contentDiv.find("#ContactNotes");
-		//CV.contactPhysicalDesc = CV.contentDiv.find("#ContactPhysicalDesc");
-		//CV.contactMetPerson = CV.contentDiv.find("#ContactMetPerson");
-		//CV.contactBirthdayMonth = CV.contentDiv.find("#ContactBirthdayMonth");
-		//CV.contactBirthdayDay = CV.contentDiv.find("#ContactBirthdayDay");
-		//CV.contactGroup = CV.contentDiv.find("#ContactGroup");
-		//CV.contactSubGroup = CV.contentDiv.find("#ContactSubGroup");
-		//CV.phoneInnerDiv = CV.contentDiv.find("#PhoneInnerDiv");
-		//CV.emailInnerDiv = CV.contentDiv.find("#EmailInnerDiv");
-		//CV.addressInnerDiv = CV.contentDiv.find("#AddressInnerDiv");
-		//CV.personalityInnerDiv = CV.contentDiv.find("#PersonalityInnerDiv");
 		
 		CV.func.LoadContact = function()
 		{
@@ -421,14 +410,13 @@
 		
 		function Delete()
 		{
-			//**** confirmation before delete
 			DeleteContact(CV.contactIndex);
-			Navigate(C.RelationshipHomeID);
+			Navigate(GetSession(C.ContactSource));
 		}
 		
 		function Edit()
 		{
-			SetSession(C.ContactSource, C.ContactViewID);
+			//SetSession(C.ContactSource, C.ContactViewID);
 			SetSession(C.ContactMode, C.ContactEdit);
 			Navigate(C.ContactEditID);
 		}

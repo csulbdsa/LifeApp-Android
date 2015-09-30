@@ -1,7 +1,16 @@
 <div id="RelationshipHome" data-role="page" data-theme="a">
 	<script>
+		//**** border each list item with the user chosen group color, save color number for future use, select group color and color number to savedcontacts, save group color and color number from contact edit when new contact is saved, when color changed for a group - find a way to color updated in savedcontacts
+		//**** way to edit created group and sub-group, edit/delete group/sub-g, on edit/delete reload all contacts
+		//**** search and filter contacts - on x button clic, serach not called
+		
 		var RH = new Object();
 		RH.func = new Object();
+		
+		RH.page = $("#RelationshipHome");
+		RH.editGroupPopup = RH.page.find("#EditGroupPopup");
+		RH.savedContactsList = RH.page.find("#SavedContactsList");
+		RH.editGroupPopup = RH.page.find("#EditGroupPopup");
 		
 		RH.func.LoadSavedContacts = function()
 		{
@@ -11,81 +20,72 @@
 			
 			if(savedContacts.length > 0)
 			{
-				var relationshipHome = $("#RelationshipHome");
+				
 				var htmlContent = "";
 
 				for(var i = 0; i < savedContacts.length; i++)
 				{
+					var contactName = GetContactName(savedContacts[i]);
+					
 				 	if(CheckObjectProperty(savedContacts[i], "phoneNumbers", true))
 					{
-				 		/* if(!IsNullOrUndefinedOrEmpty(savedContacts[i].phoneNumbers))
-				 		{ */
-				 			if(savedContacts[i].phoneNumbers.length > 0)
-			 				{
-				 				htmlContent += "<li><a href='tel:" + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "") + "' rel='external'>";
-			 				}
-				 			else
-			 				{
-				 				htmlContent += "<li><a href='' rel='external'>";
-			 				}
-				 		/* }
-				 		else
-			 			{
-				 			htmlContent += "<li><a href='' rel='external'>";
-				 		} */
+			 			if(savedContacts[i].phoneNumbers.length > 0)
+		 				{
+			 				var phone = ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "");
+			 				htmlContent += "<li id='" + contactName + "' name='" + phone + "' style='border-style: solid; border-color: #98bf21; border-width: 3px;'><a href='tel:" + phone + "' rel='external'>";
+		 				}
+			 			else
+		 				{
+			 				htmlContent += "<li id='" + contactName + "'><a href='' rel='external'>";
+		 				}
 					}
 				 	else
 			 		{
-				 		htmlContent += "<li><a href='' rel='external'>";
+				 		htmlContent += "<li id='" + contactName + "'><a href='' rel='external'>";
 			 		}
 					
-				 	var contactName = GetContactName(savedContacts[i]);
-				 	
 				 	if(IsEmpty(contactName))
 			 		{
 				 		contactName = "&nbsp;";
 				 	}
 				 	
 					htmlContent +=
-						//"<img src='" + GetContactImageSource(savedContacts[i]) + "'>" +
 						"<img id='" + savedContacts[i].uuid + "-img' src='" + C.NoContactImagePath + "'>" +
 						"<h2>" + contactName + "</h2>" +
 						"<p>";
 						
 					if(CheckObjectProperty(savedContacts[i], "phoneNumbers", true))
 					{
-						/* if(!IsNullOrUndefinedOrEmpty(savedContacts[i].phoneNumbers))
-				 		{ */
-							if(savedContacts[i].phoneNumbers.length > 0)
-			 				{
-								htmlContent += "<b>" + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "type", false))? savedContacts[i].phoneNumbers[0].type: "") + ":</b> " + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "") + "</p>";
-			 				}
-							else
-							{
-								htmlContent += "<br/>";
-							}
-						/* } */
+						if(savedContacts[i].phoneNumbers.length > 0)
+		 				{
+							htmlContent += "<b>" + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "type", false))? savedContacts[i].phoneNumbers[0].type: "") + ":</b> " + ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "") + "</p>";
+		 				}
+						else
+						{
+							htmlContent += "<br/></p>";
+						}
 					}
 					else
 					{
-						htmlContent += "<br/>";
+						htmlContent += "<br/></p>";
 					}
 
 					htmlContent +=
-						"<div id='" + savedContacts[i].uuid + "-Rating' class='ratingstars'></div>" +
+						"<div id='" + savedContacts[i].uuid + "-rating' class='ratingstars'></div>" +
 						"</a>" + 
 						"<a href='#' onClick='RH.func.ViewContact(" + i + ", \"" + savedContacts[i].uuid + "\");'></a>" +
 						"</li>";
 				}
 
-				var list = relationshipHome.find("#SavedContactsList");
-				list.html(htmlContent)
-				list.listview('refresh');
+				//var list = RH.page.find("#SavedContactsList");
+				
+				RH.savedContactsList.html(htmlContent)
+				RH.savedContactsList.listview('refresh');
 				
 				for(var i = 0; i < savedContacts.length; i++)
 				{
 					GetContactImageSource(savedContacts[i], RH.func.SetImage);
-					relationshipHome.find("#" + savedContacts[i].uuid + "-Rating").raty({ 
+					RH.page.find("#" + savedContacts[i].uuid + "-rating").raty({ 
 																		score: savedContacts[i].rating,
 																		readOnly: true
 																	});
@@ -95,6 +95,12 @@
 			{
 				// No contacts to display
 			}
+			
+			var previousSearch = GetSession(C.ContactSearchString);
+			if(previousSearch) {
+				$("#SearchTextBox").val(previousSearch);
+				RH.func.SearchContacts(previousSearch);
+			}
 		}
 		
 		RH.func.SetImage = function(contact, src)
@@ -102,7 +108,8 @@
 			$("#" + contact.uuid + "-img").attr("src", src);
 		}
 		
-		RH.func.AddNewContact = function() 
+		//RH.func.AddNewContact = function() 
+		function Add()
 		{
 			SetSession(C.ContactSource, C.RelationshipHomeID);
 			SetSession(C.ContactMode, C.ContactNew);
@@ -115,7 +122,7 @@
 		SetSession(C.ContactMode, C.ContactPhonebook);
 		SetSession(C.ContactIndex, index); */
 		
-		function Add()
+		function AddPhoneBook()
 		{
  			navigator.contacts.pickContact(
 				function(contact)
@@ -132,6 +139,11 @@
 			);
 		}
 		
+		function EditGroups()
+		{
+			RH.editGroupPopup.popup("open");
+		}
+		
 		RH.func.ViewContact = function(index, uuid)
 		{
 			SetSession(C.ContactSource, C.RelationshipHomeID);
@@ -139,11 +151,59 @@
 			
 			Navigate(C.ContactViewID);
 		}
+		
+		RH.func.SearchContacts = function(value)
+		{
+			SetSession(C.ContactSearchString, value);
+			
+			var regex = new RegExp(value, "i");
+			
+			RH.savedContactsList.find('li').hide().filter(function() {
+			    return ($(this).attr('id').match(regex) || $(this).attr('name').match(regex));
+			}).show();
+		}	
 	</script>
 	
 	<div id="ContentDiv">
-		<input type="button" onClick="RH.func.AddNewContact();" value="New Contact"/>
+		<input type="search" id="SearchTextBox" onChange="" onKeyUp="RH.func.SearchContacts(this.value);">
+		<!--<input type="button" onClick="RH.func.SearchContacts();" value="Search"/> -->
 		<ul data-role="listview" id="SavedContactsList">
 		</ul>
+	</div>
+	
+	<div data-role="popup" id="EditGroupPopup" data-theme="a" class="ui-corner-all">
+		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+		<form id="ActionForm">
+			<div style="padding:10px;">
+				<input type="button" onClick="" value="Do Nothing"/>
+			</div>
+		</form>
+		<form id="GroupForm" style="display:none">
+			<div style="padding:10px;">
+				<h3>New group</h3>
+				<input id="GroupName" placeholder="Label" type="text" data-clear-btn="true">
+				<textarea id="GroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
+				<label><input id="GroupColorCheckbox" type="checkbox" onChange="CE.groupColorPickerDiv.toggle();">Default color</label>
+				<div id="GroupColorPickerDiv" class="ui-grid-a">
+					<div class="ui-block-a" style="width:80%; padding-left:2%; padding-right:2%;">
+						<input id="GroupColor" min="1" max="266" value="1" type="range"/>
+					</div>
+					<div class="ui-block-b" style="width:20%;">
+						<a href="#" id="GroupColorBox"></a>
+						<canvas id="GroupColorCanvas" width="0" height="0" style="display:none;"></canvas>
+					</div>
+				</div>
+				<a href='#' data-role='button' onClick='CE.func.GroupSave();'>Save</a>
+			</div>
+		</form>
+		<form id="SubGroupForm" style="display:none">
+			<div style="padding:10px;">
+				<h3>New sub-group</h3>
+				<label id="GroupNameSub" data-mini="true"></label>
+				<input id="SubGroupName" placeholder="Label" type="text" data-clear-btn="true">
+				<textarea id="SubGroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
+				<a href='#' data-role='button' onClick='CE.func.SubGroupSave();'>Save</a>
+			</div>
+		</form>
 	</div>
 </div>

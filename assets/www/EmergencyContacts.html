@@ -1,0 +1,223 @@
+<div id="EmergencyContacts" data-role="page" data-theme="a">
+	<script>
+		var EC = new Object();
+		EC.func = new Object();
+		
+		EC.func.LoadSavedContacts = function()
+		{
+			RemoveSession(C.ContactIndex);
+			RemoveSession(C.ContactSource);
+			RemoveSession(C.SelectedContact);
+			
+			if(savedContacts.length > 0)
+			{
+				var selectedContacts = {};
+				
+				for(var i = 0; i < savedContacts.length; i++)
+				{
+					if(savedContacts[i].groupLabel == C.EmergencyGroupLabel)
+					{
+						var subGroupLabel = savedContacts[i].subGroupLabel;
+						
+						if(!subGroupLabel)
+						{
+							subGroupLabel = C.NoLabel;
+						}
+						
+						if(!selectedContacts.hasOwnProperty(subGroupLabel))
+						{
+							selectedContacts[subGroupLabel] = [];
+						}
+						
+						savedContacts[i].index = i;
+						selectedContacts[subGroupLabel].push(savedContacts[i]);
+					}
+				}
+				
+				var htmlContent = C.NoContentHTML;
+				selectedContacts = EC.func.SortObject(selectedContacts);
+				htmlContent = "";
+				
+				for (var property in selectedContacts) {
+				    if (selectedContacts.hasOwnProperty(property)) {
+				    	htmlContent += '<div id="" data-role="collapsible"><h3>' + property + '</h3>' + EC.func.GetSubGroupHTML(selectedContacts[property]) + '</div>';
+				    }
+				}
+					
+				var emergencyContacts = $("#EmergencyContacts");
+				var list = emergencyContacts.find("#SavedContactsList");
+				list.html(htmlContent).trigger("create");
+				
+				for (var property in selectedContacts)
+				{
+				    if (selectedContacts.hasOwnProperty(property))
+				    {
+						for(var i = 0; i < selectedContacts[property].length; i++)
+						{
+							GetContactImageSource(selectedContacts[property][i], EC.func.SetImage);
+							emergencyContacts.find("#" + selectedContacts[property][i].uuid + "-rating").raty({
+																												score: selectedContacts[property][i].rating,
+																												readOnly: true
+																											  });
+						}
+				    }
+				}
+			}
+			else
+			{
+				// No contacts to display
+			}
+		}
+		
+		EC.func.SetImage = function(contact, src)
+		{
+			$("#" + contact.uuid + "-img").attr("src", src);
+		}
+		
+		EC.func.GetSubGroupHTML = function(subGroupArray)
+		{
+			var htmlContent = C.NoContentHTML;
+			
+			if(subGroupArray.length > 0)
+			{
+				htmlContent = '<ul id="Level2List" data-role="listview">';
+				
+				for(var i = 0; i < subGroupArray.length; i++)
+				{
+					if(CheckObjectProperty(subGroupArray[i], "phoneNumbers", true))
+					{
+			 			if(subGroupArray[i].phoneNumbers.length > 0)
+		 				{
+			 				htmlContent += "<li><a href='tel:" + ((CheckObjectProperty(subGroupArray[i].phoneNumbers[0], "value", false))? subGroupArray[i].phoneNumbers[0].value: "") + "' rel='external'>";
+		 				}
+			 			else
+		 				{
+			 				htmlContent += "<li><a href='' rel='external'>";
+		 				}
+					}
+				 	else
+			 		{
+				 		htmlContent += "<li><a href='' rel='external'>";
+			 		}
+					
+				 	var contactName = GetContactName(subGroupArray[i]);
+				 	
+				 	if(IsEmpty(contactName))
+			 		{
+				 		contactName = "&nbsp;";
+				 	}
+				 	
+					htmlContent +=
+						"<img id='" + subGroupArray[i].uuid + "-img' src='" + C.NoContactImagePath + "'>" +
+						"<h2>" + contactName + "</h2>" +
+						"<p>";
+						
+					if(CheckObjectProperty(subGroupArray[i], "phoneNumbers", true))
+					{
+						if(subGroupArray[i].phoneNumbers.length > 0)
+		 				{
+							htmlContent += "<b>" + ((CheckObjectProperty(subGroupArray[i].phoneNumbers[0], "type", false))? subGroupArray[i].phoneNumbers[0].type: "") + ":</b> " + ((CheckObjectProperty(subGroupArray[i].phoneNumbers[0], "value", false))? subGroupArray[i].phoneNumbers[0].value: "") + "</p>";
+		 				}
+						else
+						{
+							htmlContent += "<br/></p>";
+						}
+					}
+					else
+					{
+						htmlContent += "<br/></p>";
+					}
+
+					htmlContent +=
+						"<div id='" + subGroupArray[i].uuid + "-rating' class='ratingstars'></div>" +
+						"</a>" + 
+						"<a href='#' onClick='EC.func.ViewContact(" + subGroupArray[i].index + ", \"" + subGroupArray[i].uuid + "\");'></a>" +
+						"</li>";
+				}
+				
+				htmlContent += '</ul>';
+			}
+			
+			return htmlContent;
+		}
+		
+		EC.func.SortObject = function(o)
+		{
+		    var sorted = {},
+		    key, a = [];
+
+		    for (key in o)
+		    {
+		        if (o.hasOwnProperty(key))
+		        {
+		            a.push(key);
+		        }
+		    }
+
+		    a.sort();
+
+		    for (key = 0; key < a.length; key++)
+		    {
+		        sorted[a[key]] = o[a[key]];
+		    }
+		    
+		    return sorted;
+		}
+		
+		EC.func.SetImage = function(contact, src)
+		{
+			$("#" + contact.uuid + "-img").attr("src", src);
+		}
+		
+		//EC.func.AddNewContact = function()
+		function Add()
+		{
+			var contact = {groupID: C.EmergencyGroupID};
+			//contact.groupID = C.EmergencyGroupID;
+			//SetSession(C.ContactSource, C.EmergencyContactsID);
+			SetSession(C.SelectedContact, JSON.stringify(contact));
+			
+			SetSession(C.ContactSource, C.EmergencyContactsID);
+			SetSession(C.ContactMode, C.ContactNew);
+			Navigate(C.ContactEditID);
+		}
+		
+		// ***** Clear these session where required in all pages
+		/* SetSession(C.ContactSource, C.RelationshipHomeID);
+		SetSession(C.SelectedContact, JSON.stringify(contact));
+		SetSession(C.ContactMode, C.ContactPhonebook);
+		SetSession(C.ContactIndex, index); */
+		
+		function AddPhoneBook()
+		{
+ 			navigator.contacts.pickContact(
+				function(contact)
+				{
+					contact.groupID = C.EmergencyGroupID;
+					SetSession(C.ContactSource, C.EmergencyContactsID);
+					SetSession(C.SelectedContact, JSON.stringify(contact));
+					SetSession(C.ContactMode, C.ContactPhonebook);
+					Navigate(C.ContactEditID);
+				},
+				function(error)
+				{
+					alert(C.ErrorOccurred + "(Error Code: RH-101)");
+				}
+			);
+		}
+		
+		EC.func.ViewContact = function(index, uuid)
+		{
+			SetSession(C.ContactSource, C.EmergencyContactsID);
+			SetSession(C.ContactIndex, index);
+			
+			Navigate(C.ContactViewID);
+		}
+	</script>
+	
+	<div id="ContentDiv">
+		<!-- <input type="button" onClick="EC.func.AddNewContact();" value="New Contact"/> -->
+		<ul data-role="collapsible-set" id="SavedContactsList" style="padding:0px;">
+		</ul>
+	</div>
+</div>

@@ -4,10 +4,10 @@ var pictureSource;
 var destinationType;
 var db;
 
-// BEGIN: Not needed in device - FOR WEB DEV ONLY - When building the app: Delete the below code (or) set isWeb flag to false 
-var isWeb = false;
+// BEGIN: Not needed in device - FOR WEB DEV ONLY - When releasing the app: Delete the below code (or) set isDev flag to false 
+var isDev = false;
 
-if(isWeb)
+if(isDev)
 {
 	InitDB();
 	
@@ -43,6 +43,10 @@ C.ContactNew = "ContactNew";
 C.ContactPhonebook = "ContactPhonebook";
 C.ContactEdit = "ContactEdit";
 C.AddNew = "Add new";
+C.EmergencyContactsID = "EmergencyContacts";
+C.EmergencyGroupID = -1;
+C.EmergencyGroupLabel = "Emergency";
+C.ContactSearchString = "ContactSearchString";
 
 C.NoLabel = "NO LABEL";
 C.NoContactImagePath = "css/images/noimage.jpg";
@@ -103,7 +107,7 @@ function InitDB()
 		);
 		
 		tx.executeSql(
-			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Emergency", "Description of emergency", "#ED0C0C", "emergency", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "emergency")',
+			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "' + C.EmergencyGroupLabel + '", "Description of emergency", "#ED0C0C", "emergency", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "emergency")',
 			[GetCurrentDateTime()],
 			function (tx, result) {
 		    },
@@ -158,6 +162,8 @@ function InitDB()
 
 function InsertSubGroups(groupsID)
 {
+	C.EmergencyGroupID = groupsID.emergency;
+	
 	db.transaction(function (tx) {
 		if(CheckObjectProperty(groupsID, "family", false))
 		{
@@ -267,6 +273,9 @@ $(document).on("pagecontainertransition", function(event, data)
 		case C.ContactEditID:
 			CE.func.LoadContact();
 			break;
+			
+		case C.EmergencyContactsID:
+			EC.func.LoadSavedContacts();
 	}
 });
 
@@ -290,10 +299,12 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 	var showHomeButton = true;
 	
 	var showAddButton = false;
+	var showAddPhoneBook = false;
 	var showSaveButton = false;
 	var showCancelButton = false;
 	var showDeleteButton = false;
 	var showEditButton = false;
+	var showGroupsButton = false;
 	
 	switch(currentPage)
 	{
@@ -308,6 +319,7 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		case C.ScriptsLevel1_2ID:
 			SL1_2.func.LoadLevel1_2();
 			headerLabel = "Scripts";
+			showBackButton = false;
 			break;
 			
 		case C.ScriptsLevel3ID:
@@ -319,6 +331,9 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		case C.RelationshipHomeID:
 			headerLabel = "Relationship Maintenance";
 			showAddButton = true;
+			showAddPhoneBook = true;
+			showBackButton = false;
+			showGroupsButton = true;
 			break;
 		
 		case C.ContactViewID:
@@ -330,6 +345,14 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		case C.ContactEditID:
 			headerLabel = "Edit Contact";
 			showSaveButton = true;
+			break;
+			
+		case C.EmergencyContactsID:
+			headerLabel = "Emergency Contacts";
+			showAddButton = true;
+			showAddPhoneBook = true;
+			showBackButton = false;
+			break;
 			
 		default:
 			footerLabel = "";
@@ -344,15 +367,15 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		headerHTML = '<div data-role="header" data-position="fixed" data-id="LifeAppHeader">';
 		
 		headerHTML += '<div data-type="horizontal" data-role="controlgroup" class="ui-btn-left">';
-			
-		if(showBackButton)
-		{
-			headerHTML += '<a id="HeaderBackButton" href="#" onClick="NavigateBack();" data-role="button" data-icon="arrow-l" data-iconpos="notext">Back</a>';
-		}
 		
 		if(showHomeButton)
 		{
 			headerHTML += '<a id="HeaderHomeButton" href="#" onClick="Navigate(C.IndexID);" data-role="button" data-icon="home" data-iconpos="notext">Home</a>';
+		}
+		
+		if(showBackButton)
+		{
+			headerHTML += '<a id="HeaderBackButton" href="#" onClick="NavigateBack();" data-role="button" data-icon="arrow-l" data-iconpos="notext">Back</a>';
 		}
 		
 		headerHTML += '</div>';
@@ -360,6 +383,16 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		headerHTML += '<h1><label style="font-weight: bold;" id="HeaderLabel">' + headerLabel + '</label></h1>';
 			
 		headerHTML += '<div data-type="horizontal" data-role="controlgroup" class="ui-btn-right">';
+
+		if(showGroupsButton)
+		{
+			headerHTML += '<a id="HeaderGroupsButton" href="#" onClick="EditGroups();" data-role="button" data-icon="grid" data-iconpos="notext">Edit Groups</a>';
+		}
+		
+		if(showAddPhoneBook)
+		{
+			headerHTML += '<a id="HeaderAddButton" href="#" onClick="AddPhoneBook();" data-role="button" data-icon="search" data-iconpos="notext">Add PhoneBook</a>';
+		}
 		
 		if(showAddButton)
 		{
@@ -936,7 +969,8 @@ function LoadSavedContactsObject()
 	
 	db.transaction(function (tx) {
 		tx.executeSql(
-			'SELECT id, displayName, name, rating, phoneNumbers, emails, addresses, physicalDesc, metPerson, birthday, note, personalities, groupID, subGroupID, lastModified FROM contacts ORDER BY displayName', 
+			'SELECT contacts.id, contacts.displayName, contacts.name, contacts.rating, contacts.phoneNumbers, contacts.emails, contacts.addresses, contacts.physicalDesc, contacts.metPerson, contacts.birthday, contacts.note, contacts.personalities, contacts.groupID, contacts.subGroupID, contacts.lastModified, groups.label AS groupLabel, subGroups.label AS subGroupLabel ' +
+			'FROM contacts LEFT OUTER JOIN groups ON contacts.groupID = groups.id LEFT OUTER JOIN subGroups ON contacts.groupID = subGroups.groupID AND contacts.subGroupID = subGroups.id ORDER BY displayName', 
 			[],
 			function (tx, results)
 			{
@@ -945,6 +979,7 @@ function LoadSavedContactsObject()
 					var row = results.rows.item(index);
 					
 					var contact = new Object();
+					//contact.index = index;
 					contact.uuid = row.id;
 					contact.displayName = row.displayName;
 					contact.name = JSON.parse(row.name);
@@ -961,6 +996,8 @@ function LoadSavedContactsObject()
 					contact.groupID = row.groupID;
 					contact.subGroupID = row.subGroupID;
 					contact.lastModified = row.lastModified;
+					contact.groupLabel = row.groupLabel;
+					contact.subGroupLabel = row.subGroupLabel;
 					
 					savedContacts.push(contact);
 				}
@@ -1392,11 +1429,28 @@ function NavigateBack()
 			break;
 
 		case C.ContactViewID:
-			Navigate(C.RelationshipHomeID);
+			Navigate(GetSession(C.ContactSource));
 			break;
 			
 		case C.ContactEditID:
-			Navigate(C.ContactViewID);
+			switch(GetSession(C.ContactMode)) {
+				case C.ContactPhonebook:
+				case C.ContactNew:
+					Navigate(GetSession(C.ContactSource));
+					break;
+					
+				case C.ContactEdit:
+					Navigate(C.ContactViewID);
+					break;
+					
+				default:
+					Navigate(C.IndexID);
+			}
+
+			break;
+			
+		case C.EmergencyContactsID:
+			Navigate(C.IndexID);
 			break;
 			
 		default:
@@ -1411,7 +1465,7 @@ function SetLocal(key, value)
 
 function GetLocal(key)
 {
-	return localStorage.getItem(key)
+	return localStorage.getItem(key);
 }
 
 function RemoveLocal()

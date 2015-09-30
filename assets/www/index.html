@@ -18,7 +18,7 @@
 		
 		<style type="text/css">
 		    /* #mygrid div { text-align: center; height: 1.5; } */
-			/* .custom-ul .ui-li { 
+			/* .custom-ul .ui-li {
 		    width  : 200px;
 		    height : 200px;
 		    float  : left;
@@ -26,7 +26,7 @@
 			.custom-ul .ui-li .ui-btn-inner {
 			    width : 100%;
 			}  */
-		</style> 
+		</style>
 	</head>
 	<body>
 		<div id="index" data-role="page" data-theme="a">
@@ -43,11 +43,12 @@
 					RemoveSession(C.ContactIndex);
 					RemoveSession(C.SelectedContact);
 					RemoveSession(C.ContactSource);
+					RemoveSession(C.ContactSearchString);
 					
 					scriptsXML = null;
 				}
 				
-			   	$( document ).on("pageinit", function() {
+			   	$(document).on("pageinit", function() {
 			        $("#mygrid").grid();
 			    });
 			</script>
@@ -76,12 +77,13 @@
 			            <li><button class="ui-btn ui-btn-b" onClick="">Social Mapping</button></li>
 			            <li><button class="ui-btn ui-btn-b" onClick="">About</button></li>
 		        	</ul> -->
+        	
 	  		 		<div id="mygrid">
 						<div><button class="ui-btn ui-btn-b" onClick="Navigate(C.ScriptsLevel1_2ID);">Scripts</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="">Conversation Do's and Don'ts</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="">Hygiene List</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="Navigate(C.RelationshipHomeID);">Relationship Maintenance</button></div>
-						<div><button class="ui-btn ui-btn-b" onClick="">Emergency Contacts</button></div>
+						<div><button class="ui-btn ui-btn-b" onClick="Navigate(C.EmergencyContactsID);">Emergency Contacts</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="">Social Mapping</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="">About</button></div>
 				 	</div>

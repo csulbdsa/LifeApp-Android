@@ -1,5 +1,7 @@
 <div id="ContactEdit" data-role="page" data-theme="a">
 	<script>
+		//**** test and fix group color slider 
+	
 		var CE = new Object();
 		CE.func = new Object();
 		
@@ -58,7 +60,17 @@
 			switch(CE.contactMode)
 			{
 				case C.ContactNew:
-					CE.selectedContact = new Object();
+					var contact = GetSession(C.SelectedContact);
+					
+					if(contact)
+					{
+						CE.selectedContact = JSON.parse(contact);
+					}
+					else
+					{
+						CE.selectedContact = new Object();
+					}
+					
 					break;
 				
 				case C.ContactEdit:
@@ -584,41 +596,39 @@
 			CE.selectedContact.birthday = birthday;
 			
 			CE.selectedContact.groupID = parseInt(CE.contactGroup.val());
+			CE.selectedContact.groupLabel = CE.contactGroup.find(":selected").text();
 			CE.selectedContact.subGroupID = parseInt(CE.contactSubGroup.val());
+			CE.selectedContact.subGroupLabel = CE.contactSubGroup.find(":selected").text();
 			
 			if(isNaN(CE.selectedContact.groupID))
 			{
 				CE.selectedContact.groupID = null;
+				CE.selectedContact.groupLabel = null;
 			}
 			
 			if(isNaN(CE.selectedContact.groupID) || isNaN(CE.selectedContact.subGroupID))
 			{
 				CE.selectedContact.subGroupID = null;
+				CE.selectedContact.subGroupLabel = null;
 			} 
+			
+			var insertIndex = -1;
 			
 			switch(CE.contactMode)
 			{
 				case C.ContactNew:
 				case C.ContactPhonebook:
 					CE.selectedContact.uuid = GenerateUUID();
-					InsertContact(CE.selectedContact);
+					insertIndex = InsertContact(CE.selectedContact);
 					break;
 				
 				case C.ContactEdit:
-					InsertContact(CE.selectedContact, CE.contactIndex);
+					insertIndex = InsertContact(CE.selectedContact, CE.contactIndex);
 					break;
 			}
 			
-			switch(CE.contactSource)
-			{
-				case C.RelationshipHomeID:
-					Navigate(C.RelationshipHomeID);
-					break;
-					
-				case C.ContactViewID:
-					Navigate(C.ContactViewID);
-					break;
-			}
+			SetSession(C.ContactIndex, insertIndex);
+			Navigate(C.ContactViewID);
 		}
 
 		CE.func.OpenPhotoView = function(sourceType)
@@ -944,6 +954,7 @@
 	</div>
 	
 	<div data-role="popup" id="GroupPopup" data-theme="a" class="ui-corner-all">
+		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<form>
 			<div style="padding:10px;">
 				<h3>New group</h3>
@@ -965,6 +976,7 @@
 	</div>
 	
 	<div data-role="popup" id="SubGroupPopup" data-theme="a" class="ui-corner-all">
+		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<form>
 			<div style="padding:10px;">
 				<h3>New sub-group</h3>
