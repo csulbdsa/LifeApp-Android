@@ -4,8 +4,8 @@ var pictureSource;
 var destinationType;
 var db;
 
-// BEGIN: Not needed in device - FOR WEB DEV ONLY - When releasing the app: Delete the below code (or) set isDev flag to false 
-var isDev = false;
+// BEGIN: Not needed in device - FOR WEB DEV ONLY. When releasing the app delete the below code or set isDev flag to false 
+var isDev = true;
 
 if(isDev)
 {
@@ -87,7 +87,7 @@ function InitDB()
 
 	db.transaction(function (tx) {
 		tx.executeSql(
-			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Family", "Description of family", "#FBB769", "family", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "family")',
+			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Family", "Description of family", null, "family", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "family")',
 			[GetCurrentDateTime()],
 			function (tx, result) {
 		    },
@@ -97,7 +97,7 @@ function InitDB()
 		);
 		
 		tx.executeSql(
-			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Neighbors", "Description of neighbors", "#755A5A", "neighbors", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "neighbors")',
+			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Neighbors", "Description of neighbors", null, "neighbors", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "neighbors")',
 			[GetCurrentDateTime()],
 			function (tx, result) {
 		    },
@@ -107,7 +107,7 @@ function InitDB()
 		);
 		
 		tx.executeSql(
-			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "' + C.EmergencyGroupLabel + '", "Description of emergency", "#ED0C0C", "emergency", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "emergency")',
+			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "' + C.EmergencyGroupLabel + '", "Description of emergency", "1", "emergency", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "emergency")',
 			[GetCurrentDateTime()],
 			function (tx, result) {
 		    },
@@ -117,7 +117,7 @@ function InitDB()
 		);
 		
 		tx.executeSql(
-			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Friends", "Description of friends", "#F5F556", "friends", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "friends")',
+			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "Friends", "Description of friends", null, "friends", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "friends")',
 			[GetCurrentDateTime()],
 			function (tx, result) {
 		    },
@@ -127,7 +127,7 @@ function InitDB()
 		);
 		
 		tx.executeSql(
-			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "School", "Description of school", "#70DE64", "school", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "school")',
+			'INSERT INTO groups(label, desc, color, sysKey, lastModified) SELECT "School", "Description of school", null, "school", ? WHERE NOT EXISTS(SELECT 1 FROM groups WHERE sysKey = "school")',
 			[GetCurrentDateTime()],
 			function (tx, result) {
 		    },
@@ -593,7 +593,8 @@ function CheckObjectProperty(object, property, isArray)
 
 function GetContactImageSource(contact, callback)
 {
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
 			'SELECT photo FROM contacts WHERE id = ?', 
 			[contact.uuid],
@@ -834,7 +835,8 @@ function DeleteContact(index)
 
 function UpdateContactDB(contact)
 {
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
 			"UPDATE contacts SET displayName = ?, name = ?, rating = ?, phoneNumbers = ?, emails = ?, addresses = ?, physicalDesc = ?, metPerson = ?, birthday = ?, personalities = ?, note = ?, photo = ?, groupID = ?, subGroupID = ?, lastModified = ? WHERE id = ?",
 			[IsEmpty(GetContactName(contact))? null: GetContactName(contact),
@@ -853,10 +855,12 @@ function UpdateContactDB(contact)
 			(CheckObjectProperty(contact, "subGroupID", false))? contact.subGroupID: null,
 			GetCurrentDateTime(),
 			contact.uuid],
-		    function (tx, result) {
+		    function (tx, result)
+		    {
 				contact.photo = null;
 		    },
-		    function (tx, error) {
+		    function (tx, error)
+		    {
 		    	OnError("C-109", true, error.message);
 		    }
 		);
@@ -918,7 +922,8 @@ function InsertContactDB(contact)
 		return;
 	}
 	
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
 			"INSERT INTO contacts (id, displayName, name, rating, phoneNumbers, emails, addresses, physicalDesc, metPerson, birthday, personalities, note, photo, groupID, subGroupID, lastModified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			[contact.uuid,
@@ -937,10 +942,12 @@ function InsertContactDB(contact)
 			(CheckObjectProperty(contact, "groupID", false))? contact.groupID: null,
 			(CheckObjectProperty(contact, "subGroupID", false))? contact.subGroupID: null,
 			GetCurrentDateTime()],
-            function (tx, result) {
+            function (tx, result)
+            {
 				contact.photo = null;
             },
-            function (tx, error) {
+            function (tx, error)
+            {
             	OnError("C-108", true, error.message);
             }
         );
@@ -949,28 +956,31 @@ function InsertContactDB(contact)
 
 function DeleteContactDB(contact)
 {
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
 			"DELETE FROM contacts WHERE id = ?",
 			[contact.uuid],
-            function (tx, result) {
+            function (tx, result)
+            {
                 //console.log("Query Success");
             },
-            function (tx, error) {
+            function (tx, error)
+            {
             	OnError("C-109", true, error.message);
             }
         );
 	});
 }
 
-function LoadSavedContactsObject()
+function LoadSavedContactsObject(callback)
 {
 	savedContacts = [];
 	
 	db.transaction(function (tx) {
 		tx.executeSql(
-			'SELECT contacts.id, contacts.displayName, contacts.name, contacts.rating, contacts.phoneNumbers, contacts.emails, contacts.addresses, contacts.physicalDesc, contacts.metPerson, contacts.birthday, contacts.note, contacts.personalities, contacts.groupID, contacts.subGroupID, contacts.lastModified, groups.label AS groupLabel, subGroups.label AS subGroupLabel ' +
-			'FROM contacts LEFT OUTER JOIN groups ON contacts.groupID = groups.id LEFT OUTER JOIN subGroups ON contacts.groupID = subGroups.groupID AND contacts.subGroupID = subGroups.id ORDER BY displayName', 
+			'SELECT contacts.id, contacts.displayName, contacts.name, contacts.rating, contacts.phoneNumbers, contacts.emails, contacts.addresses, contacts.physicalDesc, contacts.metPerson, contacts.birthday, contacts.note, contacts.personalities, contacts.groupID, contacts.subGroupID, contacts.lastModified, groups.label AS groupLabel, groups.color AS groupColor, subGroups.label AS subGroupLabel ' +
+			'FROM contacts LEFT OUTER JOIN groups ON contacts.groupID = groups.id LEFT OUTER JOIN subGroups ON contacts.groupID = subGroups.groupID AND contacts.subGroupID = subGroups.id ORDER BY displayName COLLATE NOCASE', 
 			[],
 			function (tx, results)
 			{
@@ -979,7 +989,6 @@ function LoadSavedContactsObject()
 					var row = results.rows.item(index);
 					
 					var contact = new Object();
-					//contact.index = index;
 					contact.uuid = row.id;
 					contact.displayName = row.displayName;
 					contact.name = JSON.parse(row.name);
@@ -997,9 +1006,15 @@ function LoadSavedContactsObject()
 					contact.subGroupID = row.subGroupID;
 					contact.lastModified = row.lastModified;
 					contact.groupLabel = row.groupLabel;
+					contact.groupColor = row.groupColor;
 					contact.subGroupLabel = row.subGroupLabel;
 					
 					savedContacts.push(contact);
+				}
+				
+				if(callback)
+				{
+					callback();
 				}
 			},
 			function (tx, error)
@@ -1100,7 +1115,7 @@ function LoadGroups(callback, groupID, subGroupID)
 {
 	db.transaction(function (tx) {
 		tx.executeSql(
-			'SELECT * FROM groups ORDER BY label', 
+			'SELECT * FROM groups ORDER BY label COLLATE NOCASE', 
 			[],
 			function (tx, results)
 			{
@@ -1127,9 +1142,10 @@ function LoadGroups(callback, groupID, subGroupID)
 
 function LoadSubGroups(callback, groupID, subGroupID)
 {
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
-			'SELECT * FROM subGroups WHERE groupID = ? ORDER BY label', 
+			'SELECT * FROM subGroups WHERE groupID = ? ORDER BY label COLLATE NOCASE', 
 			[groupID],
 			function (tx, results)
 			{
@@ -1154,11 +1170,106 @@ function LoadSubGroups(callback, groupID, subGroupID)
 	});
 }
 
+function GetGroup(callback, groupID)
+{
+	db.transaction(function (tx) {
+		tx.executeSql(
+			'SELECT * FROM groups WHERE id = ?', 
+			[groupID],
+			function (tx, results)
+			{
+				var val;
+				
+				if(results.rows.length == 1)
+				{
+					val = results.rows.item(0);
+					/*var subGroups = [];
+					
+					for (var index = 0; index < results.rows.length; index++)
+					{
+						var subGroup = results.rows.item(index);
+						subGroups.push(subGroup);
+					}*/
+				}
+				
+				if(!IsNullOrUndefined(callback))
+				{
+					//callback(subGroups, groupID, subGroupID);
+					callback(val);
+				}
+			},
+			function (tx, error)
+			{
+				OnError("C-112", true, error.message);
+			}
+		);
+	});
+}
+
+function GetSubGroup(callback, groupID, subGroupID)
+{
+	db.transaction(function (tx)
+	{
+		tx.executeSql(
+			'SELECT SG.*, G.label AS groupLabel FROM subGroups SG INNER JOIN groups G ON SG.groupID = G.id WHERE SG.groupID = ? AND SG.id = ?', 
+			[groupID, subGroupID],
+			function (tx, results)
+			{
+				var val;
+				
+				if(results.rows.length == 1)
+				{
+					val = results.rows.item(0);
+				}
+				
+				if(!IsNullOrUndefined(callback))
+				{
+					callback(val);
+				}
+			},
+			function (tx, error)
+			{
+				OnError("C-112", true, error.message);
+			}
+		);
+	});
+}
+
+/*function GetSubGroup(callback, groupID, subGroupID)
+{
+	db.transaction(function (tx) {
+		tx.executeSql(
+			'SELECT G.id AS groupID, G.label as groupLabel, G.Desc AS groupDesc, G.color AS groupColor, G.sysKey AS groupSysKey, SG.id AS subGroupID, SG.label as subGroupLabel, SG.Desc AS subGroupDesc, SG.sysKey AS subGroupSysKey FROM groups G LEFT OUTER JOIN subGroups SG ON G.id = SG.groupID WHERE G.id = ? AND SG.groupID = ? AND SG.id = ?', 
+			[groupID, groupID, subGroupID],
+			function (tx, results)
+			{
+				var subGroups = [];
+				
+				for (var index = 0; index < results.rows.length; index++)
+				{
+					var subGroup = results.rows.item(index);
+					subGroups.push(subGroup);
+				}
+				
+				if(!IsNullOrUndefined(callback))
+				{
+					callback(subGroups, groupID, subGroupID);
+				}
+			},
+			function (tx, error)
+			{
+				OnError("C-112", true, error.message);
+			}
+		);
+	});
+}*/
+
 function InsertGroup(group, callback)
 {
 	var currentDateTime = GetCurrentDateTime();
 	
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
 			"INSERT INTO groups (label, desc, color, sysKey, lastModified) VALUES (?, ?, ?, ?, ?)",
 			[group.label,
@@ -1199,7 +1310,8 @@ function InsertSubGroup(subGroup, callback)
 {
 	var currentDateTime = GetCurrentDateTime();
 	
-	db.transaction(function (tx) {
+	db.transaction(function (tx)
+	{
 		tx.executeSql(
 			"INSERT INTO subGroups (groupID, label, desc, color, sysKey, lastModified) VALUES (?, ?, ?, ?, ?, ?)",
 			[subGroup.groupID,
@@ -1238,24 +1350,193 @@ function InsertSubGroup(subGroup, callback)
 	});
 }
 
-function UpdateGroup()
+function UpdateGroupSubGroupContacts(oldGroupID, oldSubGroupID, newGroupID, newSubGroupID, callback)
 {
+	if(oldGroupID && oldSubGroupID)
+	{
+		db.transaction(function (tx)
+		{
+			tx.executeSql(
+				"UPDATE contacts SET groupID = ?, subGroupID = ?, lastModified = ? WHERE groupID = ? AND subGroupID = ?",
+				[newGroupID,
+				 newSubGroupID,
+				 GetCurrentDateTime(),
+				 oldGroupID,
+				 oldSubGroupID],
+			    function (tx, result)
+			    {
+					if(callback)
+					{
+						callback(oldGroupID, oldSubGroupID, newGroupID, newSubGroupID);
+					}
+			    },
+			    function (tx, error)
+			    {
+			    	OnError("C-109", true, error.message);
+			    }
+			);
+		});
+	}
+	else if(oldGroupID)
+	{
+		db.transaction(function (tx)
+		{
+			tx.executeSql(
+				"UPDATE contacts SET groupID = ?, subGroupID = ?, lastModified = ? WHERE groupID = ?",
+				[newGroupID,
+				 newSubGroupID,
+				 GetCurrentDateTime(),
+				 oldGroupID],
+			    function (tx, result)
+			    {
+					if(callback)
+					{
+						callback(oldGroupID, oldSubGroupID, newGroupID, newSubGroupID);
+					}
+			    },
+			    function (tx, error)
+			    {
+			    	OnError("C-109", true, error.message);
+			    }
+			);
+		});
+	}
+}
+
+function UpdateGroup(group, callback)
+{
+	db.transaction(function (tx)
+	{
+		tx.executeSql(
+			"UPDATE groups SET label = ?, desc = ?, color = ?, lastModified = ? WHERE id = ?",
+			[group.label,
+			(CheckObjectProperty(group, "desc", false))? group.desc: null,
+			(CheckObjectProperty(group, "color", false))? group.color: null,
+			GetCurrentDateTime(),
+			group.id],
+            function (tx, result)
+            {
+				if(callback)
+				{
+					callback();
+				}
+            },
+            function (tx, error)
+            {
+            	OnError("C-109", true, error.message);
+            }
+        );
+	});
+}
+
+function UpdateSubGroup(subGroup, callback)
+{
+	var oldGroupID;
 	
+	db.transaction(function (tx)
+	{
+		tx.executeSql(
+			"SELECT groupID FROM subGroups WHERE id = ?",
+			[subGroup.id],
+		    function (tx, result)
+		    {
+				if(result.rows.length == 1)
+				{
+					oldGroupID = result.rows.item(0).groupID;
+					
+					db.transaction(function (tx)
+					{
+						tx.executeSql(
+							"UPDATE subGroups SET groupID = ?, label = ?, desc = ?, color = ?, lastModified = ? WHERE id = ?",
+							[subGroup.groupID,
+							subGroup.label,
+							(CheckObjectProperty(subGroup, "desc", false))? subGroup.desc: null,
+							(CheckObjectProperty(subGroup, "color", false))? subGroup.color: null,
+							GetCurrentDateTime(),
+							subGroup.id],
+						    function (tx, result)
+						    {
+								if(oldGroupID != subGroup.groupID)
+								{
+									UpdateGroupSubGroupContacts(oldGroupID, subGroup.id, subGroup.groupID, subGroup.id, callback);
+								}
+								else
+								{
+									if(callback)
+									{
+										callback();
+									}
+								}
+						    },
+						    function (tx, error)
+						    {
+						    	OnError("C-109", true, error.message);
+						    }
+						);
+					});
+				}
+		    },
+		    function (tx, error)
+		    {
+		    	OnError("C-109", true, error.message);
+		    }
+		);
+	});
 }
 
-function UpdateSubGroup()
+function DeleteGroup(groupID, callback)
 {
-	
+	UpdateGroupSubGroupContacts(groupID, null, null, null, function() { DeleteGroupContinue(groupID, callback); });
 }
 
-function DeleteGroup()
+function DeleteGroupContinue(groupID, callback)
 {
-	//delete group and updated related contacts
+	db.transaction(function (tx)
+	{
+		tx.executeSql(
+			"DELETE FROM groups WHERE id = ?",
+			[groupID],
+            function (tx, result)
+            {
+				if(callback)
+				{
+					callback();
+				}
+            },
+            function (tx, error)
+            {
+            	OnError("C-109", true, error.message);
+            }
+        );
+	});
 }
 
-function DeleteSubGroup()
+function DeleteSubGroup(groupID, subGroupID, callback)
 {
-	//delete subgroup and updated related contacts
+	UpdateGroupSubGroupContacts(groupID, subGroupID, groupID, null, function() { DeleteSubGroupContinue(groupID, subGroupID, callback); });
+}
+
+function DeleteSubGroupContinue(groupID, subGroupID, callback)
+{
+	db.transaction(function (tx)
+	{
+		tx.executeSql(
+			"DELETE FROM subGroups WHERE groupID = ? AND id = ?",
+			[groupID,
+			 subGroupID],
+            function (tx, result)
+            {
+				if(callback)
+				{
+					callback();
+				}
+            },
+            function (tx, error)
+            {
+            	OnError("C-109", true, error.message);
+            }
+        );
+	});
 }
 
 function ExitApp()

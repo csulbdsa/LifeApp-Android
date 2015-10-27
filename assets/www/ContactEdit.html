@@ -1,7 +1,5 @@
 <div id="ContactEdit" data-role="page" data-theme="a">
 	<script>
-		//**** test and fix group color slider 
-	
 		var CE = new Object();
 		CE.func = new Object();
 		
@@ -156,11 +154,7 @@
 				if(CheckObjectProperty(CE.selectedContact.birthday, "month", false) && CheckObjectProperty(CE.selectedContact.birthday, "day", false))
 				{
 					CE.contactBirthdayMonth.val(CE.selectedContact.birthday.month).selectmenu('refresh');
-					
-					//if(CheckObjectProperty(CE.selectedContact.birthday, "day", false))
-					//{
-						CE.func.LoadBirthdayDay(CE.selectedContact.birthday.month, CE.selectedContact.birthday.day);
-					//}
+					CE.func.LoadBirthdayDay(CE.selectedContact.birthday.month, CE.selectedContact.birthday.day);
 				}
 			}
 			
@@ -481,7 +475,7 @@
 				
 				if(IsNullOrUndefinedOrEmpty(phoneNumber.type))
 				{
-					phoneNumber.type = ""; // C.NoLabel;
+					phoneNumber.type = "";
 				}
 				else
 				{
@@ -512,7 +506,7 @@
 				
 				if(IsNullOrUndefinedOrEmpty(email.type))
 				{
-					email.type = ""; // C.NoLabel;
+					email.type = "";
 				}
 				else
 				{
@@ -543,7 +537,7 @@
 				
 				if(IsNullOrUndefinedOrEmpty(address.type))
 				{
-					address.type = ""; // C.NoLabel;
+					address.type = "";
 				}
 				else
 				{
@@ -597,6 +591,7 @@
 			
 			CE.selectedContact.groupID = parseInt(CE.contactGroup.val());
 			CE.selectedContact.groupLabel = CE.contactGroup.find(":selected").text();
+			CE.selectedContact.groupColor = CE.contactGroup.find(":selected").attr("data-color");
 			CE.selectedContact.subGroupID = parseInt(CE.contactSubGroup.val());
 			CE.selectedContact.subGroupLabel = CE.contactSubGroup.find(":selected").text();
 			
@@ -611,6 +606,11 @@
 				CE.selectedContact.subGroupID = null;
 				CE.selectedContact.subGroupLabel = null;
 			} 
+			
+			if(isNaN(CE.selectedContact.groupColor))
+			{ 
+				CE.selectedContact.groupColor = null;
+			}
 			
 			var insertIndex = -1;
 			
@@ -692,7 +692,7 @@
 			
 			for(var i = 0; i < groups.length; i++)
 			{
-				groupsHTML += '<option value="' + groups[i].id + '">' + groups[i].label + '</option>';
+				groupsHTML += '<option value="' + groups[i].id + '" data-color="' + (groups[i].color? groups[i].color: '') + '">' + groups[i].label + '</option>';
 			}
 			
 			groupsHTML += "<option style='background-color: #D9853B; color: white;' value='addnew'>Add group</option>";
@@ -765,21 +765,15 @@
 				
 				if(CE.groupColorCheckbox.prop("checked"))
 				{
-					group.color = $("#GroupColor").val();
+					group.color = null;
 				}
 				else
 				{
-					group.color = null;
+					group.color = $("#GroupColor").val();
 				}
 				
 				InsertGroup(group, CE.func.GroupSaveComplete);
 			}
-			
-			
-			
-			//<!-- 	tx.executeSql('CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, label, desc, color, sysKey TEXT UNIQUE, lastModified)');
-			//tx.executeSql('CREATE TABLE IF NOT EXISTS subGroups (id INTEGER PRIMARY KEY AUTOINCREMENT, groupID, label, desc, color, sysKey TEXT UNIQUE, lastModified, FOREIGN KEY(groupID) REFERENCES groups(id))');
-			 //-->
 		}
 		
 		CE.func.GroupSaveComplete = function(groupId)
@@ -821,7 +815,8 @@
 		
 		CE.func.SetBoxColor = function(color)
  	    {
-			box.style.background = 'hsla(' + color + ', 100%, 50%, 0.3)';
+			//box.style.background = 'hsla(' + color + ', 100%, 50%, 0.3)';
+			box.style.background = 'hsla(' + color + ', 100%, 50%, 1)';
 			var clr = CE.groupColorBox.css('background-color');
 			CE.groupColorBox.attr('data-color', clr).trigger('click');
  	    }

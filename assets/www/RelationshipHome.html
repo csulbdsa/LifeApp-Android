@@ -1,8 +1,15 @@
 <div id="RelationshipHome" data-role="page" data-theme="a">
 	<script>
-		//**** border each list item with the user chosen group color, save color number for future use, select group color and color number to savedcontacts, save group color and color number from contact edit when new contact is saved, when color changed for a group - find a way to color updated in savedcontacts
-		//**** way to edit created group and sub-group, edit/delete group/sub-g, on edit/delete reload all contacts
-		//**** search and filter contacts - on x button clic, serach not called
+		
+		//**** relat home: manage groups - done except delete confirmation
+		//**** Relat home and view: on click call, and email, check map for address
+		//**** relat home: header text truncated
+		
+		// ***** Clear these session where required in all pages
+		/* SetSession(C.ContactSource, C.RelationshipHomeID);
+		SetSession(C.SelectedContact, JSON.stringify(contact));
+		SetSession(C.ContactMode, C.ContactPhonebook);
+		SetSession(C.ContactIndex, index); */
 		
 		var RH = new Object();
 		RH.func = new Object();
@@ -11,6 +18,23 @@
 		RH.editGroupPopup = RH.page.find("#EditGroupPopup");
 		RH.savedContactsList = RH.page.find("#SavedContactsList");
 		RH.editGroupPopup = RH.page.find("#EditGroupPopup");
+		RH.contactGroup = RH.page.find("#ContactGroup");
+		RH.contactSubGroup = RH.page.find("#ContactSubGroup");
+		RH.selectForm = RH.page.find("#SelectForm");
+		RH.actionForm = RH.page.find("#ActionForm");
+		RH.groupForm = RH.page.find("#GroupForm");
+		RH.groupName;
+		RH.groupDesc;
+		RH.groupIDHidden;
+		RH.groupColorCanvas = RH.groupForm.find("#GroupColorCanvas");
+		RH.groupColorBox = RH.groupForm.find("#GroupColorBox");
+		RH.groupColorCheckbox;
+		RH.groupColorPickerDiv = RH.groupForm.find("#GroupColorPickerDiv");
+		RH.subGroupForm = RH.page.find("#SubGroupForm");
+		RH.subGroupIDHidden;
+		RH.subGroupName;
+		RH.subGroupDesc;
+		RH.subGroupGroupName;
 		
 		RH.func.LoadSavedContacts = function()
 		{
@@ -20,28 +44,45 @@
 			
 			if(savedContacts.length > 0)
 			{
-				
 				var htmlContent = "";
 
 				for(var i = 0; i < savedContacts.length; i++)
 				{
 					var contactName = GetContactName(savedContacts[i]);
+					var groupName = "";
+					var subGroupName = "";
+					var groupBorderStyle = "";
+					
+					if(CheckObjectProperty(savedContacts[i], "subGroupLabel", false))
+					{
+						groupName = savedContacts[i].subGroupLabel;
+					}
+					
+					if(CheckObjectProperty(savedContacts[i], "groupLabel", false))
+					{
+						subGroupName = savedContacts[i].groupLabel;
+					}
+					
+					if(savedContacts[i].groupColor)
+					{
+						groupBorderStyle = "border-style: solid; border-color: hsla(" + savedContacts[i].groupColor + ", 100%, 50%, 1); border-width: 3px;";	
+					}
 					
 				 	if(CheckObjectProperty(savedContacts[i], "phoneNumbers", true))
 					{
 			 			if(savedContacts[i].phoneNumbers.length > 0)
 		 				{
 			 				var phone = ((CheckObjectProperty(savedContacts[i].phoneNumbers[0], "value", false))? savedContacts[i].phoneNumbers[0].value: "");
-			 				htmlContent += "<li id='" + contactName + "' name='" + phone + "' style='border-style: solid; border-color: #98bf21; border-width: 3px;'><a href='tel:" + phone + "' rel='external'>";
+			 				htmlContent += "<li data-name='" + contactName + "' data-phone='" + phone + "' data-group='" + groupName + "' data-sub-group='" + subGroupName + "' style='" + groupBorderStyle + "' class='ContactListItem'><a href='tel:" + phone + "' rel='external'>";
 		 				}
 			 			else
 		 				{
-			 				htmlContent += "<li id='" + contactName + "'><a href='' rel='external'>";
+			 				htmlContent += "<li data-name='" + contactName + "' data-phone='' data-group='" + groupName + "' data-sub-group='" + subGroupName + "' style='" + groupBorderStyle + "' class='ContactListItem'><a href='' rel='external'>";
 		 				}
 					}
 				 	else
 			 		{
-				 		htmlContent += "<li id='" + contactName + "'><a href='' rel='external'>";
+				 		htmlContent += "<li data-name='" + contactName + "' data-phone='' data-group='" + groupName + "' data-sub-group='" + subGroupName + "' style='" + groupBorderStyle + "' class='ContactListItem'><a href='' rel='external'>";
 			 		}
 					
 				 	if(IsEmpty(contactName))
@@ -77,8 +118,6 @@
 						"</li>";
 				}
 
-				//var list = RH.page.find("#SavedContactsList");
-				
 				RH.savedContactsList.html(htmlContent)
 				RH.savedContactsList.listview('refresh');
 				
@@ -116,12 +155,6 @@
 			Navigate(C.ContactEditID);
 		}
 		
-		// ***** Clear these session where required in all pages
-		/* SetSession(C.ContactSource, C.RelationshipHomeID);
-		SetSession(C.SelectedContact, JSON.stringify(contact));
-		SetSession(C.ContactMode, C.ContactPhonebook);
-		SetSession(C.ContactIndex, index); */
-		
 		function AddPhoneBook()
 		{
  			navigator.contacts.pickContact(
@@ -141,7 +174,255 @@
 		
 		function EditGroups()
 		{
+			RH.func.GroupsLoad(-1, -1);
+			RH.actionForm.hide();
+			RH.groupForm.hide();
+			RH.subGroupForm.hide();
+			RH.selectForm.show();
+			
 			RH.editGroupPopup.popup("open");
+		}
+		
+		RH.func.GroupsLoad = function(groupID, subGroupID)
+		{
+			//console.log("@Groupsload GID: " + groupID + ", SGID: " + subGroupID);
+			LoadGroups(RH.func.GroupsLoadContinue, groupID, subGroupID);
+		}
+		
+		RH.func.GroupsLoadContinue = function(groups, groupID, subGroupID)
+		{
+			//console.log("@Groupsloadcontinue GID: " + groupID + ", SGID: " + subGroupID);
+			var groupsHTML = '<option style="color: grey;" value="">Group</option>';
+			
+			for(var i = 0; i < groups.length; i++)
+			{
+				groupsHTML += '<option value="' + groups[i].id + '" data-color="' + (groups[i].color? groups[i].color: '') + '">' + groups[i].label + '</option>';
+			}
+			
+			var selectGroupID = groupID;
+			if(IsNullOrUndefined(selectGroupID) || isNaN(selectGroupID))
+			{
+				selectGroupID = "";
+			}
+			
+			RH.contactGroup.find('option').remove().end().append(groupsHTML).prop('selectedIndex', 0).selectmenu('refresh');
+			RH.func.SubGroupsLoad(groupID, subGroupID);
+		}
+		
+		RH.func.SubGroupsLoad = function(groupID, subGroupID)
+		{
+			//console.log("@subGroupsload GID: " + groupID + ", SGID: " + subGroupID);
+			LoadSubGroups(RH.func.SubGroupsLoadContinue, groupID, subGroupID)
+		}
+		
+		RH.func.SubGroupsLoadContinue = function(subGroups, groupID, subGroupID)
+		{
+			//console.log("@subGroupsloadcontinue GID: " + groupID + ", SGID: " + subGroupID);	
+			var subGroupsHTML = '<option style="color: grey;" value="">Sub-group</option>';
+			
+			for(var i = 0; i < subGroups.length; i++)
+			{
+				subGroupsHTML += '<option value="' + subGroups[i].id + '">' + subGroups[i].label + '</option>';
+			}
+			
+			var selectSubGroupID = subGroupID;
+			if(IsNullOrUndefined(selectSubGroupID) || isNaN(selectSubGroupID))
+			{
+				selectSubGroupID = "";
+			}
+			
+			RH.contactSubGroup.find('option').remove().end().append(subGroupsHTML).prop('selectedIndex', 0).selectmenu('refresh');
+		}
+
+		RH.func.GroupSelected = function(val)
+		{
+			RH.func.SubGroupsLoad(parseInt(val.value));
+		}
+		
+		RH.func.GroupContinue = function()
+		{
+			if(RH.contactGroup.val() != "" && RH.contactGroup.val() != null)
+			{
+				RH.selectForm.hide();
+				RH.actionForm.show();
+			}
+		}
+		
+		RH.func.EditGroupSubGroup = function()
+		{
+			if(RH.contactGroup.val() && RH.contactSubGroup.val())
+			{
+				if(!RH.subGroupIDHidden)
+				{
+					RH.subGroupIDHidden = RH.subGroupForm.find("#SubGroupIDHidden");
+					RH.subGroupName = RH.subGroupForm.find("#SubGroupName");
+					RH.subGroupDesc = RH.subGroupForm.find("#SubGroupDesc");
+					RH.subGroupGroupName = RH.subGroupForm.find("#SubGroupGroupName");
+				}
+				
+				GetSubGroup(RH.func.EditSubGroupContinue, parseInt(RH.contactGroup.val()), parseInt(RH.contactSubGroup.val()));
+			}
+			else if(RH.contactGroup.val())
+			{
+				if(!RH.groupName)
+				{
+					RH.groupName = RH.groupForm.find("#GroupName");
+					RH.groupDesc = RH.groupForm.find("#GroupDesc");
+					RH.groupColorCheckbox = RH.groupForm.find("#GroupColorCheckbox");
+					RH.groupIDHidden = RH.groupForm.find("#GroupIDHidden");
+				}
+				
+				GetGroup(RH.func.EditGroupContinue, parseInt(RH.contactGroup.val()));
+			}
+		}
+		
+		RH.func.DeleteGroupSubGroup = function()
+		{
+			if(RH.contactGroup.val() && RH.contactSubGroup.val())
+			{
+				DeleteSubGroup(parseInt(RH.contactGroup.val()), parseInt(RH.contactSubGroup.val()), RH.func.DeleteSubGroupContinue);
+			}
+			else if(RH.contactGroup.val())
+			{
+				DeleteGroup(parseInt(RH.contactGroup.val()), RH.func.DeleteGroupContinue);
+			}
+		}
+		
+		RH.func.EditGroupContinue = function(group)
+		{
+			if(group)
+			{
+				RH.groupIDHidden.text(group.id);
+				RH.groupName.val(group.label);
+				RH.groupDesc.val(group.desc);
+				
+				if(parseInt(group.color))
+				{
+					RH.groupColorCheckbox.prop('checked', false);
+					RH.groupColorPickerDiv.show();
+					$("#GroupColor").val(parseInt(group.color)).slider("refresh");
+					RH.func.SetBoxColor($("#GroupColor").val());
+				} else {
+					
+					RH.groupColorCheckbox.prop('checked', true);
+					RH.groupColorPickerDiv.hide();
+					$("#GroupColor").val(0).slider("refresh");
+					RH.func.SetBoxColor($("#GroupColor").val());
+				}
+				
+				RH.actionForm.hide();
+				RH.groupForm.show();
+			}
+		}
+		
+		RH.func.GroupSave = function()
+		{
+			var group = new Object();
+			group.id = parseInt(RH.groupIDHidden.text());
+			group.label = RH.groupName.val();
+			
+			if(group.id && !IsNullOrEmpty(group.label))
+			{
+				group.desc = RH.groupDesc.val();
+				
+				if(RH.groupColorCheckbox.prop("checked"))
+				{
+					group.color = null;
+				}
+				else
+				{
+					group.color = $("#GroupColor").val();
+				}
+				
+				UpdateGroup(group, RH.func.GroupSaveContinue);
+			}
+		}
+		
+		RH.func.GroupSaveContinue = function()
+		{
+			RH.func.PopupActionComplete();
+		}
+		
+		RH.func.DeleteGroupContinue = function()
+		{
+			RH.func.PopupActionComplete();
+		}
+		
+		RH.func.SetBoxColor = function(color)
+ 	    {
+			box.style.background = 'hsla(' + color + ', 100%, 50%, 1)';
+			var clr = RH.groupColorBox.css('background-color');
+			RH.groupColorBox.attr('data-color', clr).trigger('click');
+ 	    }
+		
+        var box = RH.groupColorBox[0];
+		RH.groupColorCanvas.sketch();
+        RH.func.SetBoxColor($("#GroupColor").val());
+        
+        $(document).on( "slidestop", "#GroupColor", function( event, ui ) {
+        	RH.func.SetBoxColor($(this).val());
+        }); 
+		
+		RH.func.EditSubGroupContinue = function(subGroup)
+		{
+			if(subGroup)
+			{
+				LoadGroups(RH.func.GroupsLoadContinue_SubGroupForm, RH.contactGroup.val(), -1);
+
+				RH.subGroupIDHidden.text(subGroup.id);
+				RH.subGroupName.val(subGroup.label);
+				RH.subGroupDesc.val(subGroup.desc);
+			}
+		}
+		
+		RH.func.GroupsLoadContinue_SubGroupForm = function(groups, groupID, subGroupID)
+		{
+			//console.log("@Groupsloadcontinue GID: " + groupID + ", SGID: " + subGroupID);
+			var groupsHTML = '<option style="color: grey;" value="">Group</option>';
+			
+			for(var i = 0; i < groups.length; i++)
+			{
+				groupsHTML += '<option value="' + groups[i].id + '" data-color="' + (groups[i].color? groups[i].color: '') + '">' + groups[i].label + '</option>';
+			}
+			
+			var selectGroupID = groupID;
+			if(IsNullOrUndefined(selectGroupID) || isNaN(selectGroupID))
+			{
+				selectGroupID = "";
+			}
+			
+			RH.subGroupGroupName.find('option').remove().end().append(groupsHTML).val(selectGroupID).selectmenu('refresh');
+			RH.actionForm.hide();
+			RH.subGroupForm.show();
+		}
+		
+		RH.func.SubGroupSave = function()
+		{
+			var subGroup = new Object();
+			subGroup.id = RH.subGroupIDHidden.text();
+			subGroup.groupID = parseInt(RH.subGroupGroupName.val());
+			subGroup.label = RH.subGroupName.val();
+			
+			if(subGroup.id && !isNaN(subGroup.groupID) && !IsNullOrEmpty(subGroup.label))
+			{
+				subGroup.desc = RH.subGroupDesc.val();
+				UpdateSubGroup(subGroup, RH.func.SubGroupSaveContinue);
+			}
+		}
+		
+		RH.func.SubGroupSaveContinue = function()
+		{
+			RH.func.PopupActionComplete();
+		}
+		
+		RH.func.DeleteSubGroupContinue = function() {
+			RH.func.PopupActionComplete();
+		}
+		
+		RH.func.PopupActionComplete = function()
+		{
+			LoadSavedContactsObject(RH.func.LoadSavedContacts);
+			RH.editGroupPopup.popup("close");
 		}
 		
 		RH.func.ViewContact = function(index, uuid)
@@ -152,57 +433,122 @@
 			Navigate(C.ContactViewID);
 		}
 		
+        RH.page.on('click', '.ui-input-clear', function () {
+        	RH.func.SearchContacts('');
+        });
+        
 		RH.func.SearchContacts = function(value)
 		{
 			SetSession(C.ContactSearchString, value);
 			
 			var regex = new RegExp(value, "i");
 			
-			RH.savedContactsList.find('li').hide().filter(function() {
-			    return ($(this).attr('id').match(regex) || $(this).attr('name').match(regex));
+			/*var list = RH.savedContactsList.find('li');
+			list.hide();
+			
+			list.filter(function() {
+				if($(this).is("[data-name]")) {
+					if($(this).attr('data-name').match(regex)) {
+						return true;
+					}
+				}
+				
+				if($(this).is("[data-phone]")) {
+					if($(this).attr('data-phone').match(regex)) {
+						return true;
+					}
+				}
+				
+				if($(this).is("[data-group]")) {
+					if($(this).attr('data-group').match(regex)) {
+						return true;
+					}
+				}
+				
+				if($(this).is("[data-sub-group]")) {
+					if($(this).attr('data-sub-group').match(regex)) {
+						return true;
+					}
+				}
+				
+				return false;
+			}).show();*/
+
+			RH.savedContactsList.find('.ContactListItem').hide().filter(function() {
+			    return ($(this).attr('data-name').match(regex) ||
+			    		$(this).attr('data-phone').match(regex) ||
+			    		$(this).attr('data-group').match(regex) ||
+			    		$(this).attr('data-sub-group').match(regex));
 			}).show();
-		}	
+		}
 	</script>
 	
+	<style type="text/css">
+		.ui-slider-track {
+		    background:url("css/images/colorpicker.png") repeat-x !important;
+		    margin: 0 15px 0 15px !important;
+		}
+		
+		#GroupColor {
+		    display: none;
+		}
+
+		#GroupColorBox {
+		    width:30px;
+		    height:30px;
+		    border:1px solid #000;
+		    display: inline-block;
+		}
+	</style>
+	
 	<div id="ContentDiv">
-		<input type="search" id="SearchTextBox" onChange="" onKeyUp="RH.func.SearchContacts(this.value);">
+		<input type="search" id="SearchTextBox" onChange="" onKeyUp="RH.func.SearchContacts(this.value);" placeholder="Name / Phone / Group">
 		<!--<input type="button" onClick="RH.func.SearchContacts();" value="Search"/> -->
 		<ul data-role="listview" id="SavedContactsList">
 		</ul>
 	</div>
 	
-	<div data-role="popup" id="EditGroupPopup" data-theme="a" class="ui-corner-all">
+	<div data-role="popup" id="EditGroupPopup" data-theme="a" class="ui-corner-all" style="width:150%">
 		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
-		<form id="ActionForm">
+		<form>
 			<div style="padding:10px;">
-				<input type="button" onClick="" value="Do Nothing"/>
-			</div>
-		</form>
-		<form id="GroupForm" style="display:none">
-			<div style="padding:10px;">
-				<h3>New group</h3>
-				<input id="GroupName" placeholder="Label" type="text" data-clear-btn="true">
-				<textarea id="GroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
-				<label><input id="GroupColorCheckbox" type="checkbox" onChange="CE.groupColorPickerDiv.toggle();">Default color</label>
-				<div id="GroupColorPickerDiv" class="ui-grid-a">
-					<div class="ui-block-a" style="width:80%; padding-left:2%; padding-right:2%;">
-						<input id="GroupColor" min="1" max="266" value="1" type="range"/>
-					</div>
-					<div class="ui-block-b" style="width:20%;">
-						<a href="#" id="GroupColorBox"></a>
-						<canvas id="GroupColorCanvas" width="0" height="0" style="display:none;"></canvas>
-					</div>
+				<h3>Edit group / Sub-group</h3>
+				
+				<div id="SelectForm">
+					<select id="ContactGroup" onChange="RH.func.GroupSelected(this);"></select>
+					<select id="ContactSubGroup"></select>
+					<input id="ContinueButton" type="button" onClick="RH.func.GroupContinue();" value="Continue"/>
 				</div>
-				<a href='#' data-role='button' onClick='CE.func.GroupSave();'>Save</a>
-			</div>
-		</form>
-		<form id="SubGroupForm" style="display:none">
-			<div style="padding:10px;">
-				<h3>New sub-group</h3>
-				<label id="GroupNameSub" data-mini="true"></label>
-				<input id="SubGroupName" placeholder="Label" type="text" data-clear-btn="true">
-				<textarea id="SubGroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
-				<a href='#' data-role='button' onClick='CE.func.SubGroupSave();'>Save</a>
+				
+				<div id="ActionForm" style="display:none">
+					<input id="EditButton" type="button" onClick="RH.func.EditGroupSubGroup();" value="Edit"/>
+					<input id="DeleteButton" type="button" onClick="RH.func.DeleteGroupSubGroup();" value="Delete"/>
+				</div>
+				
+				<div id="GroupForm" style="display:none">
+					<input id="GroupName" placeholder="Label" type="text" data-clear-btn="true">
+					<textarea id="GroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
+					<label><input id="GroupColorCheckbox" type="checkbox" onChange="RH.groupColorPickerDiv.toggle();">Default color</label>
+					<div id="GroupColorPickerDiv" class="ui-grid-a">
+						<div class="ui-block-a" style="width:80%; padding-left:2%; padding-right:2%;">
+							<input id="GroupColor" min="1" max="266" value="1" type="range"/>
+						</div>
+						<div class="ui-block-b" style="width:20%;">
+							<a href="#" id="GroupColorBox"></a>
+							<canvas id="GroupColorCanvas" width="0" height="0" style="display:none;"></canvas>
+						</div>
+					</div>
+					<a href='#' data-role='button' onClick='RH.func.GroupSave();'>Save</a>
+					<label id="GroupIDHidden" style="display:none"></label>
+				</div>
+				
+				<div id="SubGroupForm" style="display:none">
+					<select id="SubGroupGroupName"></select>
+					<input id="SubGroupName" placeholder="Label" type="text" data-clear-btn="true">
+					<textarea id="SubGroupDesc" placeholder="Description" data-clear-btn="true" data-mini="true"></textarea>
+					<a href='#' data-role='button' onClick='RH.func.SubGroupSave();'>Save</a>
+					<label id="SubGroupIDHidden" style="display:none"></label>
+				</div>
 			</div>
 		</form>
 	</div>
