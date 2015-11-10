@@ -5,7 +5,7 @@ var destinationType;
 var db;
 
 // BEGIN: Not needed in device - FOR WEB DEV ONLY. When releasing the app delete the below code or set isDev flag to false 
-var isDev = true;
+var isDev = false;
 
 if(isDev)
 {

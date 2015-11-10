@@ -20,8 +20,8 @@
 		RH.editGroupPopup = RH.page.find("#EditGroupPopup");
 		RH.contactGroup = RH.page.find("#ContactGroup");
 		RH.contactSubGroup = RH.page.find("#ContactSubGroup");
+		RH.popupHeader = RH.page.find("#PopupHeader");
 		RH.selectForm = RH.page.find("#SelectForm");
-		RH.actionForm = RH.page.find("#ActionForm");
 		RH.groupForm = RH.page.find("#GroupForm");
 		RH.groupName;
 		RH.groupDesc;
@@ -174,8 +174,8 @@
 		
 		function EditGroups()
 		{
+			RH.popupHeader.text("Edit group / sub-group");
 			RH.func.GroupsLoad(-1, -1);
-			RH.actionForm.hide();
 			RH.groupForm.hide();
 			RH.subGroupForm.hide();
 			RH.selectForm.show();
@@ -239,19 +239,12 @@
 			RH.func.SubGroupsLoad(parseInt(val.value));
 		}
 		
-		RH.func.GroupContinue = function()
-		{
-			if(RH.contactGroup.val() != "" && RH.contactGroup.val() != null)
-			{
-				RH.selectForm.hide();
-				RH.actionForm.show();
-			}
-		}
-		
 		RH.func.EditGroupSubGroup = function()
 		{
 			if(RH.contactGroup.val() && RH.contactSubGroup.val())
 			{
+				RH.popupHeader.text("Edit sub-group");
+				
 				if(!RH.subGroupIDHidden)
 				{
 					RH.subGroupIDHidden = RH.subGroupForm.find("#SubGroupIDHidden");
@@ -264,6 +257,8 @@
 			}
 			else if(RH.contactGroup.val())
 			{
+				RH.popupHeader.text("Edit group");
+				
 				if(!RH.groupName)
 				{
 					RH.groupName = RH.groupForm.find("#GroupName");
@@ -288,6 +283,8 @@
 			}
 		}
 		
+		
+		// fix default color checkbox here ****
 		RH.func.EditGroupContinue = function(group)
 		{
 			if(group)
@@ -298,20 +295,19 @@
 				
 				if(parseInt(group.color))
 				{
-					RH.groupColorCheckbox.prop('checked', false);
+					RH.groupColorCheckbox.prop('checked', false).checkboxradio('refresh');
 					RH.groupColorPickerDiv.show();
 					$("#GroupColor").val(parseInt(group.color)).slider("refresh");
-					RH.func.SetBoxColor($("#GroupColor").val());
 				} else {
-					
-					RH.groupColorCheckbox.prop('checked', true);
+					RH.groupColorCheckbox.prop('checked', true).checkboxradio('refresh');
 					RH.groupColorPickerDiv.hide();
 					$("#GroupColor").val(0).slider("refresh");
-					RH.func.SetBoxColor($("#GroupColor").val());
 				}
 				
-				RH.actionForm.hide();
+				RH.func.SetBoxColor($("#GroupColor").val());
+				RH.selectForm.hide();
 				RH.groupForm.show();
+				RH.editGroupPopup.popup("reposition", {positionTo: 'window'});
 			}
 		}
 		
@@ -392,8 +388,9 @@
 			}
 			
 			RH.subGroupGroupName.find('option').remove().end().append(groupsHTML).val(selectGroupID).selectmenu('refresh');
-			RH.actionForm.hide();
+			RH.selectForm.hide();
 			RH.subGroupForm.show();
+			RH.editGroupPopup.popup("reposition", {positionTo: 'window'});
 		}
 		
 		RH.func.SubGroupSave = function()
@@ -485,8 +482,10 @@
 	
 	<style type="text/css">
 		.ui-slider-track {
-		    background:url("css/images/colorpicker.png") repeat-x !important;
+		    background:url("css/images/colorpicker.png") !important;
 		    margin: 0 15px 0 15px !important;
+        	background-repeat: no-repeat !important;
+    		background-size: 100% 100% !important;
 		}
 		
 		#GroupColor {
@@ -508,19 +507,16 @@
 		</ul>
 	</div>
 	
-	<div data-role="popup" id="EditGroupPopup" data-theme="a" class="ui-corner-all" style="width:150%">
+	<div data-role="popup" id="EditGroupPopup" data-theme="a" class="ui-corner-all">
 		<a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<form>
 			<div style="padding:10px;">
-				<h3>Edit group / Sub-group</h3>
+				<h3 id="PopupHeader">Edit Group / Sub-group</h3>
 				
 				<div id="SelectForm">
 					<select id="ContactGroup" onChange="RH.func.GroupSelected(this);"></select>
 					<select id="ContactSubGroup"></select>
-					<input id="ContinueButton" type="button" onClick="RH.func.GroupContinue();" value="Continue"/>
-				</div>
-				
-				<div id="ActionForm" style="display:none">
+					<!-- <input id="ContinueButton" type="button" onClick="RH.func.GroupContinue();" value="Continue"/> -->
 					<input id="EditButton" type="button" onClick="RH.func.EditGroupSubGroup();" value="Edit"/>
 					<input id="DeleteButton" type="button" onClick="RH.func.DeleteGroupSubGroup();" value="Delete"/>
 				</div>
@@ -531,7 +527,7 @@
 					<label><input id="GroupColorCheckbox" type="checkbox" onChange="RH.groupColorPickerDiv.toggle();">Default color</label>
 					<div id="GroupColorPickerDiv" class="ui-grid-a">
 						<div class="ui-block-a" style="width:80%; padding-left:2%; padding-right:2%;">
-							<input id="GroupColor" min="1" max="266" value="1" type="range"/>
+							<input id="GroupColor" min="1" max="356" value="1" type="range"/>
 						</div>
 						<div class="ui-block-b" style="width:20%;">
 							<a href="#" id="GroupColorBox"></a>

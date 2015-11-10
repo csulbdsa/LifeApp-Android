@@ -743,8 +743,10 @@
 			{
 				CE.groupName.val("");
 				CE.groupDesc.val("");
-				CE.groupColorCheckbox.prop('checked', false);
-				CE.groupColorPickerDiv.show();
+				//CE.groupColorCheckbox.prop('checked', false);
+				//CE.groupColorPickerDiv.show();
+				CE.groupColorCheckbox.prop('checked', true).checkboxradio('refresh');
+				CE.groupColorPickerDiv.hide();
 				$("#GroupColor").val(0).slider("refresh");
 				CE.func.SetBoxColor($("#GroupColor").val());
 				
@@ -832,8 +834,10 @@
 	
 	<style type="text/css">
 		.ui-slider-track {
-		    background:url("css/images/colorpicker.png") repeat-x !important;
+		    background:url("css/images/colorpicker.png") !important;
 		    margin: 0 15px 0 15px !important;
+        	background-repeat: no-repeat !important;
+    		background-size: 100% 100% !important;
 		}
 		
 		#GroupColor {
@@ -958,7 +962,7 @@
 				<label><input id="GroupColorCheckbox" type="checkbox" onChange="CE.groupColorPickerDiv.toggle();">Default color</label>
 				<div id="GroupColorPickerDiv" class="ui-grid-a">
 					<div class="ui-block-a" style="width:80%; padding-left:2%; padding-right:2%;">
-						<input id="GroupColor" min="1" max="266" value="1" type="range"/>
+						<input id="GroupColor" min="1" max="356" value="1" type="range"/>
 					</div>
 					<div class="ui-block-b" style="width:20%;">
 						<a href="#" id="GroupColorBox"></a>
