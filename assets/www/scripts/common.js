@@ -1781,6 +1781,10 @@ function NavigateBack()
 			Navigate(C.ConversationLevel1ID);
 			break;
 			
+		case C.AboutID:
+			Navigate(C.IndexID);
+			break;
+			
 		default:
 			break;
 	}
