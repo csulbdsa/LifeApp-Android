@@ -1,0 +1,57 @@
+<div id="ConversationLevel1" data-role="page" data-theme="a">
+	<script>
+		var CL1 = new Object();
+		CL1.func = new Object();
+		CL1.page = $("#ConversationLevel1");
+		
+		CL1.func.LoadLevel1 = function()
+		{
+			RemoveSession(C.ConversationLevel1ID);
+			RemoveSession(C.ConversationLevel1Value);
+			
+			if(IsNull(conversationXML))
+			{
+				$.get("Conversation.xml", function (value) {
+					conversationXML = $(value);
+					CL1.func.LoadList()
+				});
+			}
+			else
+			{
+				CL1.func.LoadList()
+			}
+		}
+
+		CL1.func.LoadList = function()
+		{
+			var level1 = conversationXML.find("level1");
+			var htmlContent = C.NoContentHTML;
+			
+			if(!IsNullOrUndefined(level1) && level1.size() > 0)
+			{
+				var htmlContent = '<ul id="Level1List" data-role="listview" data-inset="true" style="padding:0px;">';
+
+				level1.each(function(){
+					htmlContent += '<li id="' + $(this).attr("id") + '"><a href="#" onClick="CL1.func.Level1Selected(\'' + $(this).attr("id") + '\', \'' + $(this).attr("value") + '\');">' + $(this).attr("value") + '</a></li>';
+				});
+			
+				htmlContent += '</ul>';
+			}
+			
+			CL1.page.find("#ContentDiv").html(htmlContent).trigger("create");
+		}
+
+		CL1.func.Level1Selected = function(level1ID, level1Value)
+		{
+			SetSession(C.ConversationLevel1ID, level1ID);
+			SetSession(C.ConversationLevel1Value, level1Value);
+
+			Navigate(C.ConversationLevel2ID);
+		}
+	</script>
+
+  	<div id="ConversationLevel1Main" data-role="main" class="ui-content" style="padding:3px;">
+  		<div id="ContentDiv">
+  		</div>
+  	</div>
+</div>

@@ -1,10 +1,11 @@
 var scriptsXML = null;
+var conversationXML = null;
 var savedContacts = [];
 var pictureSource;
 var destinationType;
 var db;
 
-// BEGIN: Not needed in device - FOR WEB DEV ONLY. When releasing the app delete the below code or set isDev flag to false 
+//BEGIN: Not needed in device - FOR WEB DEV ONLY. When releasing the app delete the below code or set isDev flag to false 
 var isDev = false;
 
 if(isDev)
@@ -47,6 +48,10 @@ C.EmergencyContactsID = "EmergencyContacts";
 C.EmergencyGroupID = -1;
 C.EmergencyGroupLabel = "Emergency";
 C.ContactSearchString = "ContactSearchString";
+C.ConversationLevel1ID = "ConversationLevel1";
+C.ConversationLevel1Value = "ConversationLevel1Value";
+C.ConversationLevel2ID = "ConversationLevel2";
+C.AboutID = "About";
 
 C.NoLabel = "NO LABEL";
 C.NoContactImagePath = "css/images/noimage.jpg";
@@ -300,11 +305,14 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 	
 	var showAddButton = false;
 	var showAddPhoneBook = false;
+	var showGroupsButton = false;
+	var showAboutButton = false;
+	
 	var showSaveButton = false;
 	var showCancelButton = false;
 	var showDeleteButton = false;
 	var showEditButton = false;
-	var showGroupsButton = false;
+	
 	
 	switch(currentPage)
 	{
@@ -314,18 +322,22 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 			subHeaderLabel = "Welcome";
 			showBackButton = false;
 			showHomeButton = false;
+			showFooter = false;
+			showAboutButton = true;
 			break;
 		
 		case C.ScriptsLevel1_2ID:
 			SL1_2.func.LoadLevel1_2();
 			headerLabel = "Scripts";
 			showBackButton = false;
+			showFooter = false;
 			break;
 			
 		case C.ScriptsLevel3ID:
 			SL3.func.LoadLevel3();
 			headerLabel = "Scripts";
 			subHeaderLabel = GetSession(C.ScriptsLevel1Value) + ' > ' + GetSession(C.ScriptsLevel2Value);
+			showFooter = false;
 			break;
 			
 		case C.RelationshipHomeID:
@@ -334,6 +346,7 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 			showAddPhoneBook = true;
 			showBackButton = false;
 			showGroupsButton = true;
+			showFooter = false;
 			break;
 		
 		case C.ContactViewID:
@@ -352,6 +365,27 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 			showAddButton = true;
 			showAddPhoneBook = true;
 			showBackButton = false;
+			showFooter = false;
+			break;
+		
+		case C.ConversationLevel1ID:
+			CL1.func.LoadLevel1();
+			headerLabel = "Conversation";
+			showBackButton = false;
+			showFooter = false;
+			break;
+			
+		case C.ConversationLevel2ID:
+			CL2.func.LoadLevel2();
+			headerLabel = "Conversation";
+			subHeaderLabel = GetSession(C.ConversationLevel1Value);
+			showFooter = false;
+			break;
+			
+		case C.AboutID:
+			headerLabel = "About";
+			showBackButton = false;
+			showFooter = false;
 			break;
 			
 		default:
@@ -397,6 +431,11 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		if(showAddButton)
 		{
 			headerHTML += '<a id="HeaderAddButton" href="#" onClick="Add();" data-role="button" data-icon="plus" data-iconpos="notext">Add</a>';
+		}
+		
+		if(showAboutButton)
+		{
+			headerHTML += '<a id="HeaderAboutButton" href="#" onClick="Navigate(C.AboutID);" data-role="button" data-icon="info" data-iconpos="notext">About</a>';
 		}
 		
 		headerHTML += '</div>';
@@ -1732,6 +1771,14 @@ function NavigateBack()
 			
 		case C.EmergencyContactsID:
 			Navigate(C.IndexID);
+			break;
+			
+		case C.ConversationLevel1ID:
+			Navigate(C.IndexID);
+			break;
+			
+		case C.ConversationLevel2ID:
+			Navigate(C.ConversationLevel1ID);
 			break;
 			
 		default:

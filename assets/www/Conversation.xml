@@ -1,0 +1,63 @@
+<conversation>
+    <level1 id="askingquestions" value="Asking questions">
+        <level2 id="samples" value="Samples">
+            <level3 id="someoneasks" value="If someone asks">
+                <level4 id="" value="How are you?"/>
+                <level4 id="" value="What are your plans for the weekend?"/>
+                <level4 id="" value="What's new?"/>
+                <level4 id="" value="How was your week?"/>
+                <level4 id="" value=""/>
+                <level4 id="" value="It's polite to ask them the same question back"/>
+            </level3>
+        </level2>
+        <level2 id="videos" value="Video">
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title2" description="Desc2"/>
+        </level2> 
+    </level1>
+    
+    <level1 id="activelylistening" value="Actively listening">
+        <level2 id="samples" value="Samples">
+            <level3 id="whatisactivelistening" value="What is it?">
+                <level4 id="" value="Active listening is a communication technique that allows the speaker to know the listener is paying attention and comprehending what he/shw is hearing"/>
+            </level3>
+            <level3 id="howtoactivelisten" value="How do I actively listen?">
+                <level4 id="" value="Don't: text, play video games, read or do other distracting activities that will interfere with eye contact"/>
+                <level4 id="" value="Do: ask more questions for more information or clarification"/>
+            </level3>
+        </level2>
+        <level2 id="videos" value="Video">
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+        </level2>
+    </level1>
+    
+	<level1 id="volume" value="Volume">
+		<level2 id="samples" value="Samples">
+            <level3 id="itsbalance" value="It's all about balance">
+                <level4 id="" value="Don't talk loudly - this makes the listener uncomfortable"/>
+                <level4 id="" value="Don't talk softly - this makes it difficult for the listener to understand what you are saying"/>
+            </level3>
+        </level2>
+        <level2 id="videos" value="Video">
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title2" description="Desc2"/>
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title3" description="Desc3"/>
+        </level2>
+	</level1>
+	
+	<level1 id="content" value="Content">
+		<level2 id="samples" value="Samples">
+            <level3 id="whatsinappropriate" value="What's inappropriate">
+                <level4 id="" value="The following make people uncomfortable, upset or even angry:"/>
+                <level4 id="" value="Asking personal questions"/>
+                <level4 id="" value="Sharing inappropriate personal information"/>
+                <level4 id="" value="Bringing up inappropriate topics - religion, politics, controversial social issues"/>
+                <level4 id="" value="Using inappropriate language"/>
+            </level3>
+        </level2>
+        <level2 id="videos" value="Video">
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+            <level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title2" description="Desc2"/>
+        </level2>
+	</level1>
+</conversation>

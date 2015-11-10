@@ -1,0 +1,95 @@
+<div id="ConversationLevel2" data-role="page" data-theme="a">
+	<script>
+		var CL2 = new Object();
+		CL2.func = new Object();
+		CL2.page = $("#ConversationLevel2");
+	
+		CL2.func.LoadLevel2 = function()
+		{
+			var level1ID = GetSession(C.ConversationLevel1ID);
+			var htmlContent;
+			var level2Samples = conversationXML.find("level1[id='" + level1ID + "'] level2[id='samples'] level3");
+			var level2Videos = conversationXML.find("level1[id='" + level1ID + "'] level2[id='videos'] level3");
+			
+			if(!IsNullOrUndefined(level2Samples) && level2Samples.size() > 0)
+			{
+				htmlContent = '<div id="ConversationLevel2SamplesList" data-role="collapsibleset" data-inset="true">';
+				
+				level2Samples.each(function(){
+					htmlContent += '<div data-role="collapsible"><h3>' + $(this).attr("value") + '</h3><p>' + CL2.func.GetScriptsLevel4HTML(this) + '</p></div>';
+				});
+			
+				htmlContent += '</div>';
+				
+				CL2.page.find("#ConversationLevel2Samples").html(htmlContent);
+			}
+			else
+			{
+				CL2.page.find("#ConversationLevel2Samples").html(C.NoContentHTML);
+			}
+			
+			if(!IsNullOrUndefined(level2Videos) && level2Videos.size() > 0)
+			{
+				htmlContent = '<ul id="ScriptsLevel3VideosList" data-role="listview" data-inset="true">';
+				
+				level2Videos.each(function(){
+					htmlContent += '<li>' + 
+										'<h4>' + $(this).attr("title") + '</h4>' +
+										'<div class="video-wrapper"><div class="video-container"><iframe class="youtube-player" type="text/html" width="100%" height="270" style="max-width:100%;" src="http://' + $(this).attr("value") + '?wmode=opaque" frameborder="0" allowfullscreen></iframe></div></div>' +
+										'<p>' + $(this).attr("description") + '</p>' +
+									'</li>';
+				});
+			
+				htmlContent += '</ul>';
+
+				CL2.page.find("#ConversationLevel2Videos").html(htmlContent);
+			}
+			else
+			{
+				CL2.page.find("#ConversationLevel2Videos").html(C.NoContentHTML);
+			}
+			
+			CL2.page.find("#ConversationLevel2Tabs").trigger("create");
+		}
+		
+		CL2.func.GetScriptsLevel4HTML = function(level3)
+		{
+			var level4 = $(level3).find("level4");
+			
+			var htmlContent = C.NoContentHTML;
+			
+			if(!IsNullOrUndefined(level4) && level4.size() > 0)
+			{
+				htmlContent = '';
+				
+				level4.each(function() {
+					if(htmlContent)
+					{
+						htmlContent += '<br/>';	
+					}
+					
+					htmlContent += $(this).attr("value");
+				});
+			}
+			
+			return htmlContent;
+		}
+	</script>
+
+  	<div id="ConversationLevel2Main" data-role="main" style="padding: 0px;" class="ui-content">
+	  	<div data-role="tabs" id="ConversationLevel2Tabs">
+	  		<div data-role="navbar">
+	    		<ul>
+	      			<li><a href="#ConversationLevel2Samples" class="ui-btn-active" data-ajax="false">Samples</a></li>
+	      			<li><a href="#ConversationLevel2Videos" data-ajax="false">Videos</a></li>
+	    		</ul>
+	  		</div>
+	  		
+	  		<div id="ConversationLevel2Samples">
+	  		</div>
+	  		
+		  	<div id="ConversationLevel2Videos">
+		  	</div>
+		</div>
+	</div>
+</div>
