@@ -468,33 +468,36 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 			switch(footerButtonCount)
 			{
 				case 1:
-					footerButtonHTML = "[BUTTON0]";
+					footerButtonHTML = 
+						'<div style="text-align:center;">' +
+							'[BUTTON0]' +
+						'</div>';
 					break;
 					
 				case 2:
 					footerButtonHTML = 
 						'<div class="ui-grid-a">' +
-							'<div class="ui-block-a">[BUTTON0]</div>' +
-							'<div class="ui-block-b">[BUTTON1]</div>' +
+							'<div class="ui-block-a" style="text-align:center;">[BUTTON0]</div>' +
+							'<div class="ui-block-b" style="text-align:center;">[BUTTON1]</div>' +
 						'</div>';
 					break;
 					
 				case 3:
 					footerButtonHTML = 
 						'<div class="ui-grid-b">' +
-							'<div class="ui-block-a">[BUTTON0]</div>' +
-							'<div class="ui-block-b">[BUTTON1]</div>' +
-							'<div class="ui-block-c">[BUTTON2]</div>' +
+							'<div class="ui-block-a" style="text-align:center;">[BUTTON0]</div>' +
+							'<div class="ui-block-b" style="text-align:center;">[BUTTON1]</div>' +
+							'<div class="ui-block-c" style="text-align:center;">[BUTTON2]</div>' +
 						'</div>';
 					break;
 					
 				case 4:
 					footerButtonHTML = 
 						'<div class="ui-grid-c">' +
-							'<div class="ui-block-a">[BUTTON0]</div>' +
-							'<div class="ui-block-b">[BUTTON1]</div>' +
-							'<div class="ui-block-c">[BUTTON2]</div>' +
-							'<div class="ui-block-d">[BUTTON3]</div>' +
+							'<div class="ui-block-a" style="text-align:center;">[BUTTON0]</div>' +
+							'<div class="ui-block-b" style="text-align:center;">[BUTTON1]</div>' +
+							'<div class="ui-block-c" style="text-align:center;">[BUTTON2]</div>' +
+							'<div class="ui-block-d" style="text-align:center;">[BUTTON3]</div>' +
 						'</div>';
 					break;
 					
@@ -506,25 +509,25 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 			
 			if(showSaveButton)
 			{
-				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:90%' onClick='Save();'>Save</a>");
+				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:97%; margin-left:0px; margin-right:0px; padding-left:0px; padding-right:0px;' onClick='Save();'>Save</a>");
 				currentFooterButtonCount++;
 			}
 			
 			if(showEditButton)
 			{
-				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:90%' onClick='Edit();'>Edit</a>");
+				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:97%; margin-left:0px; margin-right:0px; padding-left:0px; padding-right:0px;' onClick='Edit();'>Edit</a>");
 				currentFooterButtonCount++;
 			}
 			
 			if(showDeleteButton)
 			{
-				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:90%' onClick='Delete();'>Delete</a>");
+				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:97%; margin-left:0px; margin-right:0px; padding-left:0px; padding-right:0px;' onClick='Delete();'>Delete</a>");
 				currentFooterButtonCount++;
 			}
 			
 			if(showCancelButton)
 			{
-				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:90%' onClick='Cancel();'>Cancel</a>");
+				footerButtonHTML = footerButtonHTML.replace("[BUTTON" + currentFooterButtonCount + "]", "<a href='#' data-role='button' style='width:97%; margin-left:0px; margin-right:0px; padding-left:0px; padding-right:0px;' onClick='Cancel();'>Cancel</a>");
 				currentFooterButtonCount++;
 			}
 			
