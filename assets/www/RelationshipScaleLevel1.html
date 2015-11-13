@@ -1,0 +1,60 @@
+<div id="RelationshipScaleLevel1" data-role="page" data-theme="a">
+	<script>
+		var RS1 = new Object();
+		RS1.func = new Object();
+		RS1.page = $("#RelationshipScaleLevel1");
+		
+		RS1.func.LoadLevel1 = function()
+		{
+			RemoveSession(C.RelationshipScaleLevel1ID);
+			RemoveSession(C.RelationshipScaleLevel1Value);
+			
+			if(IsNull(relationshipXML))
+			{
+				$.get("Relationship.xml", function (value) {
+					relationshipXML = $(value);
+					RS1.func.LoadList()
+				});
+			}
+			else
+			{
+				RS1.func.LoadList()
+			}
+		}
+
+		RS1.func.LoadList = function()
+		{
+			if(relationshipXML)
+			{
+				var level1 = relationshipXML.find("level1");
+				var htmlContent = C.NoContentHTML;
+				
+				if(!IsNullOrUndefined(level1) && level1.size() > 0)
+				{
+					var htmlContent = '<ul id="Level1List" data-role="listview" data-inset="true" style="padding:0px;">';
+	
+					level1.each(function(){
+						htmlContent += '<li id="' + $(this).attr("id") + '"><a href="#" onClick="RS1.func.Level1Selected(\'' + $(this).attr("id") + '\', \'' + $(this).attr("value") + '\');">' + $(this).attr("value") + '</a></li>';
+					});
+				
+					htmlContent += '</ul>';
+				}
+				
+				RS1.page.find("#ContentDiv").html(htmlContent).trigger("create");
+			}
+		}
+
+		RS1.func.Level1Selected = function(level1ID, level1Value)
+		{
+			SetSession(C.RelationshipScaleLevel1ID, level1ID);
+			SetSession(C.RealtionshipScaleLevel1Value, level1Value);
+
+			Navigate(C.RelationshipScaleLevel2ID);
+		}
+	</script>
+
+  	<div id="RelationshipScaleLevel1Main" data-role="main" class="ui-content" style="padding:3px;">
+  		<div id="ContentDiv">
+  		</div>
+  	</div>
+</div>

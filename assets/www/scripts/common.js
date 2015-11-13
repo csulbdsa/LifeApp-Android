@@ -1,5 +1,6 @@
 var scriptsXML = null;
 var conversationXML = null;
+var relationshipXML = null;
 var savedContacts = [];
 var pictureSource;
 var destinationType;
@@ -52,6 +53,9 @@ C.ConversationLevel1ID = "ConversationLevel1";
 C.ConversationLevel1Value = "ConversationLevel1Value";
 C.ConversationLevel2ID = "ConversationLevel2";
 C.AboutID = "About";
+C.RelationshipScaleLevel1ID = "RelationshipScaleLevel1";
+C.RelationshipScaleLevel1Value = "RelationshipScaleLevel1Value";
+C.RelationshipScaleLevel2ID = "RelationshipScaleLevel2";
 
 C.NoLabel = "NO LABEL";
 C.NoContactImagePath = "css/images/noimage.jpg";
@@ -385,6 +389,20 @@ $(document).on("pagecontainerbeforeshow", function(event, data)
 		case C.AboutID:
 			headerLabel = "About";
 			showBackButton = false;
+			showFooter = false;
+			break;
+			
+		case C.RelationshipScaleLevel1ID:
+			RS1.func.LoadLevel1();
+			headerLabel = "Social Relationship Scale";
+			showBackButton = false;
+			showFooter = false;
+			break;
+			
+		case C.RelationshipScaleLevel2ID:
+			RS2.func.LoadLevel2();
+			headerLabel = "Social Relationship Scale";
+			subHeaderLabel = GetSession(C.RelationshipScaleLevel1Value);
 			showFooter = false;
 			break;
 			
@@ -1788,6 +1806,14 @@ function NavigateBack()
 			Navigate(C.IndexID);
 			break;
 			
+		case C.RelationshipScaleLevel1ID:
+			Navigate(C.IndexID);
+			break;
+			
+		case C.RelationshipScaleLevel2ID:
+			Navigate(C.RelationshipScaleLevel1ID);
+			break;
+		
 		default:
 			break;
 	}

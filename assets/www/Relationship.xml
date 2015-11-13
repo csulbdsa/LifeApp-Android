@@ -1,0 +1,86 @@
+<relationship>
+	<level1 id="level1" value="Level 1- Small talk less than 30 seconds">
+		<level2 id="samples" value="Samples">
+		    <level3 id="" value="A: hey how’s it going?"/>
+		    <level3 id="" value="B: good how are you?"/>
+		    <level3 id="" value="A: good"/>
+		    <level3 id="" value="B: alright see you later"/>
+		</level2>   
+	    <level2 id="videos" value="Videos">
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title2" description="Desc2"/>
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title3" description="Desc3"/>
+		</level2>
+	</level1>
+	
+	<level1 id="level2" value="Level 2- Extended small talk, more than 30 seconds">
+		<level2 id="samples" value="Samples">
+		    <level3 id="" value="A: Hi."/>
+		    <level3 id="" value="B: Oh, hi."/>
+		    <level3 id="" value="A: How are you doing?"/>
+		    <level3 id="" value="B: I'm doing alright. How about you?"/>
+		    <level3 id="" value="A: Not too bad. Wish this rain would let up soon"/>
+		    <level3 id="" value="B: I don’t know, I kinda like it this way."/>
+		    <level3 id="" value="A: Well I wish I had known this morning so I could’ve brought a jacket."/>
+		    <level3 id="" value="B: Me too."/>
+		    <level3 id="" value="A: So where are you going now?"/>
+		    <level3 id="" value="B: I'm going to meet a friend of mine at the book store"/>
+		    <level3 id="" value="A: Going to do a little shopping?"/>
+		    <level3 id="" value="B: Yeah, I have to buy some presents for my parents."/>
+		    <level3 id="" value="A: What's the occasion?"/>
+		    <level3 id="" value="B: It's their anniversary and they like getting souvenirs."/>
+		    <level3 id="" value="A: That's great. Well, you better get going. You don't want to be late."/>
+		    <level3 id="" value="B: I'll see you next time."/>
+		    <level3 id="" value="A: Sure. Bye."/>
+		</level2>   
+	    <level2 id="videos" value="Videos">
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+		</level2>
+	</level1>
+	
+	<level1 id="level3" value="Level 3- Sharing personal information">
+		<level2 id="samples" value="Samples">
+		    <level3 id="" value="A: Hey how are you?"/>
+		    <level3 id="" value="B: I’m alright how bout you?"/>
+		    <level3 id="" value="A: I’m good, what’s going on?"/>
+		    <level3 id="" value="B: I just have a lot of tests coming up and I’m working all weekend so I don’t think I’ll have time to study."/>
+		    <level3 id="" value="A: Oh, that’s a bummer, I’m sure you’ll be fine, good luck"/>
+		    <level3 id="" value="B: Thanks"/>
+		</level2>   
+	    <level2 id="videos" value="Videos">
+		</level2>
+	</level1>
+	
+	<level1 id="level4" value="Level 4- Checking up on personal information">
+		<level2 id="samples" value="Samples">
+		    <level3 id="" value="A: Hey how’s it going?"/>
+		    <level3 id="" value="B: Good and you?"/>
+		    <level3 id="" value="A: Good, how’d your tests go?"/>
+		    <level3 id="" value="B: They went okay, better than I thought but not as good as I wanted"/>
+		    <level3 id="" value="A: Well at least they’re over!"/>
+		    <level3 id="" value="B: Ha ha yeah."/>
+		</level2>   
+	    <level2 id="videos" value="Videos">
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title3" description="Desc3"/>
+		</level2>
+	</level1>
+	
+	<level1 id="level5" value="Level 5- Making plans together">
+		<level2 id="samples" value="Samples">
+		    <level3 id="" value="A: Hey."/>
+		    <level3 id="" value="B: Hey, what’s new?”"/>
+		    <level3 id="" value="A: nothing much how about you?"/>
+		    <level3 id="" value="B: nothing much. I wa thinking of going to see a movie this weekend."/>
+		    <level3 id="" value="A: Oh yeah, which one?"/>
+		    <level3 id="" value="B: I don’t know yet. You wanto come?"/>
+		    <level3 id="" value="A: yeah that’d be fun. What time?"/>
+		    <level3 id="" value="B: Um, lets look up what movies are showing and see what times they are playing."/>
+		    <level3 id="" value="A: okay"/>
+		</level2>   
+	    <level2 id="videos" value="Videos">
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title1" description="Desc1"/>
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title2" description="Desc2"/>
+			<level3 id="" value="www.youtube.com/embed/s0MDY9fl-IA" title="Title3" description="Desc3"/>
+		</level2>
+	</level1>
+</relationship>

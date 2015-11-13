@@ -24,21 +24,24 @@
 
 		CL1.func.LoadList = function()
 		{
-			var level1 = conversationXML.find("level1");
-			var htmlContent = C.NoContentHTML;
-			
-			if(!IsNullOrUndefined(level1) && level1.size() > 0)
+			if(conversationXML)
 			{
-				var htmlContent = '<ul id="Level1List" data-role="listview" data-inset="true" style="padding:0px;">';
-
-				level1.each(function(){
-					htmlContent += '<li id="' + $(this).attr("id") + '"><a href="#" onClick="CL1.func.Level1Selected(\'' + $(this).attr("id") + '\', \'' + $(this).attr("value") + '\');">' + $(this).attr("value") + '</a></li>';
-				});
-			
-				htmlContent += '</ul>';
+				var level1 = conversationXML.find("level1");
+				var htmlContent = C.NoContentHTML;
+				
+				if(!IsNullOrUndefined(level1) && level1.size() > 0)
+				{
+					var htmlContent = '<ul id="Level1List" data-role="listview" data-inset="true" style="padding:0px;">';
+	
+					level1.each(function(){
+						htmlContent += '<li id="' + $(this).attr("id") + '"><a href="#" onClick="CL1.func.Level1Selected(\'' + $(this).attr("id") + '\', \'' + $(this).attr("value") + '\');">' + $(this).attr("value") + '</a></li>';
+					});
+				
+					htmlContent += '</ul>';
+				}
+				
+				CL1.page.find("#ContentDiv").html(htmlContent).trigger("create");
 			}
-			
-			CL1.page.find("#ContentDiv").html(htmlContent).trigger("create");
 		}
 
 		CL1.func.Level1Selected = function(level1ID, level1Value)

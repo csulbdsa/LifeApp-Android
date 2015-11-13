@@ -1,0 +1,76 @@
+<div id="RelationshipScaleLevel2" data-role="page" data-theme="a">
+	<script>
+		var RS2 = new Object();
+		RS2.func = new Object();
+		RS2.page = $("#RelationshipScaleLevel2");
+	
+		RS2.func.LoadLevel2 = function()
+		{
+			if(relationshipXML)
+			{
+				var level1ID = GetSession(C.RelationshipScaleLevel1ID);
+				//var level2ID = GetSession(C.RelationshipScaleLevel2ID);
+				var htmlContent;
+				var level2Samples = relationshipXML.find("level1[id='" + level1ID + "'] level2[id='samples'] level3");
+				var level2Videos = relationshipXML.find("level1[id='" + level1ID + "'] level2[id='videos'] level3");
+				
+				if(!IsNullOrUndefined(level2Samples) && level2Samples.size() > 0)
+				{
+					htmlContent = '<ul id="RelationshipScaleLevel2SamplesList" data-role="listview" data-inset="true">'; // style="padding:0px;"
+					
+					level2Samples.each(function(){
+						htmlContent += '<li>' + $(this).attr("value") + '</li>';
+					});
+				
+					htmlContent += '</ul>';
+					
+					RS2.page.find("#RelationshipScaleLevel2Samples").html(htmlContent);
+				}
+				else
+				{
+					RS2.page.find("#RelationshipScaleLevel2Samples").html(C.NoContentHTML);
+				}
+				
+				if(!IsNullOrUndefined(level2Videos) && level2Videos.size() > 0)
+				{
+					htmlContent = '<ul id="ScriptsLevel2VideosList" data-role="listview" data-inset="true">';
+					
+					level2Videos.each(function(){
+						htmlContent += '<li>' + 
+											'<h4>' + $(this).attr("title") + '</h4>' +
+											'<div class="video-wrapper"><div class="video-container"><iframe class="youtube-player" type="text/html" width="100%" height="270" style="max-width:100%;" src="http://' + $(this).attr("value") + '?wmode=opaque" frameborder="0" allowfullscreen></iframe></div></div>' +
+											'<p>' + $(this).attr("description") + '</p>' +
+										'</li>';
+					});
+				
+					htmlContent += '</ul>';
+	
+					RS2.page.find("#RelationshipScaleLevel2Videos").html(htmlContent);
+				}
+				else
+				{
+					RS2.page.find("#RelationshipScaleLevel2Videos").html(C.NoContentHTML);
+				}
+				
+				RS2.page.find("#RelationshipScaleLevel2Tabs").trigger("create");
+			}
+		}
+	</script>
+
+  	<div id="RelationshipScaleLevel2Main" data-role="main" style="padding: 0px;" class="ui-content">
+	  	<div data-role="tabs" id="RelationshipScaleLevel2Tabs">
+	  		<div data-role="navbar">
+	    		<ul>
+	      			<li><a href="#RelationshipScaleLevel2Samples" class="ui-btn-active" data-ajax="false">Samples</a></li>
+	      			<li><a href="#RelationshipScaleLevel2Videos" data-ajax="false">Videos</a></li>
+	    		</ul>
+	  		</div>
+	  		
+	  		<div id="RelationshipScaleLevel2Samples">
+	  		</div>
+	  		
+		  	<div id="RelationshipScaleLevel2Videos">
+		  	</div>
+		</div>
+	</div>
+</div>

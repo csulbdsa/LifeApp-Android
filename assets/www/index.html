@@ -8,8 +8,8 @@
 		<link rel="stylesheet" href="css/jquery.mobile-1.4.5.css" type='text/css'>
 		<link rel="stylesheet" href="css/jquery.raty.css" type='text/css'>
 
-		<script src="cordova.js"></script>
-		<script src="cordova_plugins.js"></script>
+		<!-- <script src="cordova.js"></script>
+		<script src="cordova_plugins.js"></script> -->
 		<script src="scripts/jquery-2.1.1.js"></script>
 		<script src="scripts/jquery.mobile-1.4.5.js"></script>
 		<script src="scripts/common.js"></script>
@@ -49,6 +49,9 @@
 					RemoveSession(C.ConversationLevel1ID);
 					RemoveSession(C.ConversationLevel1Value);
 					
+					RemoveSession(C.RelationshipScaleLevel1ID);
+					RemoveSession(C.RealtionshipScaleLevel1Value);
+					
 					scriptsXML = null;
 				}
 				
@@ -65,7 +68,7 @@
 						<div><button class="ui-btn ui-btn-b" onClick="">Hygiene List</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="Navigate(C.RelationshipHomeID);">Relationship Maintenance</button></div>
 						<div><button class="ui-btn ui-btn-b" onClick="Navigate(C.EmergencyContactsID);">Emergency Contacts</button></div>
-						<div><button class="ui-btn ui-btn-b" onClick="">Social Mapping</button></div>
+						<div><button class="ui-btn ui-btn-b" onClick="Navigate(C.RelationshipScaleLevel1ID);">Social Relationship Scale</button></div>
 				 	</div>
 				</div>
 			</div>
