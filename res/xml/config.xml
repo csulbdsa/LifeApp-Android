@@ -26,4 +26,7 @@
     <feature name="Contacts">
         <param name="android-package" value="org.apache.cordova.contacts.ContactManager" />
     </feature>
+	<access origin="tel:*" launch-external="yes" />
+	<access origin="mailto:*" launch-external="yes" />
+	<access origin="geo:*" launch-external="yes" />
 </widget>

@@ -330,7 +330,7 @@
 					
 					html =
 						'<li>' +
-							'<a href="email:' + emailValue + '">' +
+							'<a href="mailto:' + emailValue + '">' +
 								'<div class="ui-grid-a PhoneNumber">' +
 									'<div class="ui-block-a" style="width: 30%;">' +
 										emailType +
@@ -366,7 +366,7 @@
 					
 					html =
 						'<li>' +
-							'<a href="address:' + addressValue + '">' +
+							'<a href="#" onClick="CV.func.OpenMaps(\'' + addressValue + '\');"  >' +
 								'<div class="ui-grid-a PhoneNumber">' +
 									'<div class="ui-block-a" style="width: 30%;">' +
 										addressType +
@@ -403,6 +403,11 @@
 			}
 			
 			return html;
+		}
+		
+		CV.func.OpenMaps(address)
+		{
+			window.open("geo:0,0?q=" + address, '_system');
 		}
 		
 		CV.func.SetImage = function(contact, src)
